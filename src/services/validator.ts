@@ -1,4 +1,6 @@
 import type { ValidationError } from '@/types/json'
+import { jsonrepair } from 'jsonrepair'
+import { diffArrays } from 'diff'
 
 interface ParsedError {
   line: number
@@ -31,8 +33,6 @@ function parseError(message: string, json?: string): ParsedError | null {
 }
 
 export function validateJson(json: string): { valid: boolean; errors: ValidationError[] } {
-  const errors: ValidationError[] = []
-
   if (!json.trim()) {
     return { valid: true, errors: [] }
   }
@@ -41,24 +41,53 @@ export function validateJson(json: string): { valid: boolean; errors: Validation
     JSON.parse(json)
     return { valid: true, errors: [] }
   } catch (e) {
-    const message = (e as Error).message
+    const errors: ValidationError[] = []
 
-    const errorMsg = parseError(message, json)
-    if (errorMsg) {
+    const firstError = parseError((e as Error).message, json)
+    if (firstError) {
       errors.push({
-        line: errorMsg.line,
-        column: errorMsg.column,
-        message: errorMsg.message,
+        line: firstError.line,
+        column: firstError.column,
+        message: firstError.message,
         type: 'syntax',
-        suggestion: errorMsg.suggestion,
+        suggestion: firstError.suggestion,
       })
-    } else {
+    }
+
+    try {
+      const corrected = jsonrepair(json)
+      if (corrected !== json) {
+        const origLines = json.split('\n')
+        const changes = diffArrays(origLines, corrected.split('\n'))
+        let origLineNum = 0
+        for (const change of changes) {
+          if (change.removed && change.count) {
+            for (let i = 0; i < change.count; i++) {
+              const lineNum = origLineNum + i + 1
+              if (!errors.some(e => e.line === lineNum)) {
+                errors.push({
+                  line: lineNum,
+                  column: 1,
+                  message: `Syntax error near line ${lineNum}`,
+                  type: 'syntax',
+                  suggestion: 'Check this line for issues',
+                })
+              }
+            }
+          }
+          if (change.count) {
+            if (change.removed) origLineNum += change.count
+            else if (!change.added) origLineNum += change.count
+          }
+        }
+      }
+    } catch {}
+
+    if (errors.length === 0) {
       errors.push({
-        line: 1,
-        column: 1,
-        message,
+        line: 1, column: 1,
+        message: (e as Error).message,
         type: 'syntax',
-        suggestion: getSuggestion(message),
       })
     }
 

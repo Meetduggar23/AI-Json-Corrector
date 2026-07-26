@@ -1,3 +1,4 @@
+import { Component, type ReactNode } from 'react'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { Toaster } from 'react-hot-toast'
 import { Layout } from '@/components/layout/Layout'
@@ -13,6 +14,36 @@ import HistoryPage from '@/pages/History'
 import SettingsPage from '@/pages/Settings'
 import NotFound from '@/pages/NotFound'
 import NotWorking from '@/pages/NotWorking'
+
+class ErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean }> {
+  constructor(props: { children: ReactNode }) {
+    super(props)
+    this.state = { hasError: false }
+  }
+  static getDerivedStateFromError() {
+    return { hasError: true }
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="h-screen w-screen flex items-center justify-center bg-bg-primary text-text-primary">
+          <div className="text-center">
+            <h1 className="text-2xl font-bold mb-2">Something went wrong</h1>
+            <p className="text-text-secondary mb-4">An unexpected error occurred. Please reload the page.</p>
+            <button
+              onClick={() => { this.setState({ hasError: false }); window.location.reload() }}
+              className="rounded-xl bg-accent text-white px-6 py-2 text-sm font-medium"
+            >
+              Reload
+            </button>
+          </div>
+        </div>
+      )
+    }
+    return this.props.children
+  }
+}
+
 function AppContent() {
 
   return (
@@ -52,7 +83,9 @@ function AppContent() {
 export default function App() {
   return (
     <BrowserRouter>
-      <AppContent />
+      <ErrorBoundary>
+        <AppContent />
+      </ErrorBoundary>
     </BrowserRouter>
   )
 }

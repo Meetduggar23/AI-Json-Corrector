@@ -87,7 +87,7 @@ export function SearchBar({ visible, onClose, content, onReplace }: SearchBarPro
             placeholder="Replace..."
             className="w-28 bg-bg-primary border border-border rounded px-2 py-1 text-text-primary text-xs outline-none focus:border-primary"
           />
-          <button onClick={handleReplace} className="px-2 py-1 rounded bg-primary text-white text-xs hover:bg-accent-hover">
+          <button onClick={handleReplace} className="px-2 py-1 rounded bg-accent text-white text-xs hover:bg-accent-hover">
             Replace
           </button>
         </div>

@@ -12,6 +12,8 @@ export function Layout() {
   const { run } = useRun()
   const [rightWidth, setRightWidth] = useState(320)
   const isDraggingRight = useRef(false)
+  const runRef = useRef(run)
+  runRef.current = run
 
   const handleRightMouseDown = useCallback((e: React.MouseEvent) => {
     e.preventDefault()
@@ -38,13 +40,16 @@ export function Layout() {
   }, [])
 
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
+    if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+      e.preventDefault()
+    }
     if (e.key === 'F2') {
       e.preventDefault()
       window.dispatchEvent(new CustomEvent('editor:rename'))
     }
     if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
       e.preventDefault()
-      run()
+      runRef.current()
     }
     if (e.ctrlKey && e.shiftKey && e.key === 'b') {
       e.preventDefault()
@@ -54,7 +59,7 @@ export function Layout() {
       e.preventDefault()
       toggleRightPanel()
     }
-  }, [toggleSidebar, toggleRightPanel, run])
+  }, [toggleSidebar, toggleRightPanel])
 
   useEffect(() => {
     document.addEventListener('keydown', handleKeyDown)

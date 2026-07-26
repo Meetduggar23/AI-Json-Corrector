@@ -11,6 +11,7 @@ import { readFileAsText } from '@/utils/upload'
 import { computeStatistics } from '@/utils/statistics'
 import { isValidJson } from '@/services/formatter'
 import { trackActivity, type ActivityEntry } from '@/utils/activity'
+import { STORAGE_KEY_RECENT_FILES } from '@/constants'
 
 interface RecentFile {
   id: string
@@ -21,7 +22,7 @@ interface RecentFile {
   timestamp: number
 }
 
-const STORAGE_KEY_FILES = 'json-corrector-recent-files'
+const STORAGE_KEY_FILES = STORAGE_KEY_RECENT_FILES
 
 const ACTIONS = [
   { icon: FileCheck, label: 'Validate JSON', desc: 'Check JSON syntax and structure', path: '/validator' },
@@ -66,16 +67,16 @@ const bottomTabs = [
 
 export function Dashboard() {
   const {
-    content, validationErrors, consoleEntries, history,
+    validationErrors, consoleEntries, history,
     setContent, setFileName, setStatistics, setValidationErrors,
-    addConsoleEntry, pushHistory,
+    addConsoleEntry,
   } = useEditorStore()
   const navigate = useNavigate()
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const [activeBottomTab, setActiveBottomTab] = useState<'problems' | 'output' | 'logs' | 'history' | 'schema'>('problems')
 
-  const recentFiles = useMemo(() => loadRecentFiles(), [content])
+  const recentFiles = useMemo(() => loadRecentFiles(), [])
 
   const handleOpenFile = useCallback(() => {
     fileInputRef.current?.click()
@@ -99,16 +100,6 @@ export function Dashboard() {
     }
     e.target.value = ''
   }, [setContent, setFileName, setStatistics, setValidationErrors, addConsoleEntry])
-
-  const handleNewFile = useCallback(() => {
-    setContent('{\n  \n}')
-    setFileName('untitled.json')
-    setStatistics(null)
-    setValidationErrors([])
-    pushHistory({ id: generateId(), content: '{\n  \n}', timestamp: Date.now(), label: 'Created new document' })
-    trackActivity({ type: 'open', label: 'Created new document', path: '/' })
-    addConsoleEntry({ id: generateId(), type: 'info', message: 'Created new document', timestamp: Date.now() })
-  }, [setContent, setFileName, setStatistics, setValidationErrors, pushHistory, addConsoleEntry])
 
   const handleAction = useCallback((action: typeof ACTIONS[number]) => {
     const t = action.label.toLowerCase()

@@ -6,13 +6,15 @@ import { useEditorStore } from '@/store/editorStore'
 import { useRepair } from '@/hooks/useRepair'
 import { useSettingsStore } from '@/store/editorStore'
 import { beautifyJson } from '@/services/formatter'
+import { validateJson } from '@/services/validator'
+import { computeStatistics } from '@/utils/statistics'
 import { downloadJson } from '@/utils/download'
 import { readFileAsText } from '@/utils/upload'
 import { generateId } from '@/utils/helpers'
 import toast from 'react-hot-toast'
 
 export function EditorToolbar() {
-  const { content, setContent, pushHistory, undo, redo, historyIndex, history, setFileName } = useEditorStore()
+  const { content, setContent, pushHistory, undo, redo, historyIndex, history, setFileName, setValidationErrors, setStatistics } = useEditorStore()
   const { tabSize, indentStyle } = useSettingsStore()
   const { repair } = useRepair()
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -53,12 +55,17 @@ export function EditorToolbar() {
 
   const handleRepair = useCallback(() => {
     const r = repair(content, false)
+    const validationResult = validateJson(r.corrected)
+    setValidationErrors(validationResult.errors)
+    if (validationResult.valid) {
+      setStatistics(computeStatistics(r.corrected))
+    }
     if (r.success) {
       toast.success('JSON repaired successfully')
     } else {
       toast.error('Repair failed - could not fix JSON')
     }
-  }, [content, repair])
+  }, [content, repair, setValidationErrors, setStatistics])
 
   const handleCopy = async () => {
     await navigator.clipboard.writeText(content)

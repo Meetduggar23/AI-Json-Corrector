@@ -61,14 +61,14 @@ export function quickFixRemoveTrailingComma(json: string): string {
 
 export function quickFixAddQuotes(json: string): string {
   const { cleaned, map } = extractStrings(json)
-  const result = cleaned.replace(/(\{|\,)\s*([a-zA-Z_$][a-zA-Z0-9_$]*)\s*:/g, '$1"$2":')
+  const result = cleaned.replace(/(\{|,)\s*([a-zA-Z_$][a-zA-Z0-9_$]*)\s*:/g, '$1"$2":')
   return restoreStrings(result, map)
 }
 
 export function quickFixRemoveInvalid(json: string): string {
   const { cleaned, map } = extractStrings(json)
   const result = cleaned
-    .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F]/g, '')
+    .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F]/g, '') // eslint-disable-line no-control-regex
     .replace(/\/\/.*/g, '')
     .replace(/\/\*[\s\S]*?\*\//g, '')
   return restoreStrings(result, map)

@@ -1,4 +1,5 @@
-import { createContext, useContext, useEffect, useState, useCallback, type ReactNode } from 'react'
+import { createContext, useContext, useEffect, useState, useCallback, useRef, type ReactNode } from 'react'
+import { STORAGE_KEY_THEME } from '@/constants'
 
 type Theme = 'light' | 'dark'
 
@@ -17,7 +18,7 @@ const ThemeContext = createContext<ThemeContextType>({
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [theme, setThemeState] = useState<Theme>(() => {
     try {
-      const stored = localStorage.getItem('json-corrector-theme')
+      const stored = localStorage.getItem(STORAGE_KEY_THEME)
       if (stored === 'light' || stored === 'dark') return stored
     } catch {}
     return 'dark'
@@ -28,14 +29,20 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const applyTheme = useCallback((t: Theme) => {
     setResolvedTheme(t)
     document.documentElement.setAttribute('data-theme', t)
-    try { localStorage.setItem('json-corrector-theme', t) } catch {}
+    try { localStorage.setItem(STORAGE_KEY_THEME, t) } catch {}
   }, [])
 
   useEffect(() => {
     applyTheme(theme)
   }, [theme, applyTheme])
 
+  const isFirstRender = useRef(true)
+
   useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false
+      return
+    }
     const html = document.documentElement
     html.classList.add('theme-transition')
     const timeout = setTimeout(() => html.classList.remove('theme-transition'), 200)

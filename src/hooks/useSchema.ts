@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react'
 import { validateWithSchema } from '@/services/schema'
-import type { SchemaValidationResult, SchemaError } from '@/types/schema'
+import type { SchemaValidationResult } from '@/types/schema'
 
 export function useSchema() {
   const [schema, setSchema] = useState('')

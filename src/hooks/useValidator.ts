@@ -7,8 +7,6 @@ import { trackActivity } from '@/utils/activity'
 
 export function useValidator() {
   const { setValidationErrors, setStatistics, addConsoleEntry } = useEditorStore()
-  const lastValidated = useRef('')
-
   const validate = useCallback((content: string): boolean => {
     if (!content.trim()) {
       setValidationErrors([])

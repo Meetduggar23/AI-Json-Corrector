@@ -4,7 +4,9 @@ import {
 } from 'lucide-react'
 import { useEditorStore } from '@/store/editorStore'
 import { cn } from '@/utils/helpers'
-import { revealPosition } from '@/utils/editorApi'
+import { revealPosition, getEditorApi } from '@/utils/editorApi'
+import type { ConsoleEntry } from '@/types/editor'
+import toast from 'react-hot-toast'
 
 const tabs = [
   { id: 'problems' as const, label: 'Problems', icon: XCircle },
@@ -100,7 +102,14 @@ function ProblemsTab({ errors }: { errors: { line: number; column: number; messa
       {errors.map((err, i) => (
         <button
           key={i}
-          onClick={() => revealPosition(err.line, err.column)}
+          onClick={() => {
+            const { editor } = getEditorApi()
+            if (!editor) {
+              toast.error('Editor not available - open a file first')
+              return
+            }
+            revealPosition(err.line, err.column)
+          }}
           className="flex items-start gap-2.5 py-1.5 px-2 rounded-lg hover:bg-hover w-full text-left transition-colors"
         >
           <XCircle size={13} className="text-danger shrink-0 mt-0.5" />
@@ -134,7 +143,7 @@ function OutputTab() {
   )
 }
 
-function LogsTab({ entries }: { entries: ReturnType<typeof useEditorStore.getState>['consoleEntries'] }) {
+function LogsTab({ entries }: { entries: ConsoleEntry[] }) {
   if (entries.length === 0) {
     return <div className="text-text-muted italic text-[11px] py-2">No log entries yet.</div>
   }

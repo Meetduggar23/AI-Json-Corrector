@@ -1,4 +1,5 @@
-import { useCallback } from 'react'
+import type { RepairResult } from '@/types/json'
+import { useCallback, useRef } from 'react'
 import { useEditorStore } from '@/store/editorStore'
 import { useSettingsStore } from '@/store/editorStore'
 import { useRepair } from '@/hooks/useRepair'
@@ -10,28 +11,41 @@ import { setMarkers, clearMarkers, revealPosition } from '@/utils/editorApi'
 import toast from 'react-hot-toast'
 
 export function useRun() {
+  const contentRef = useRef('')
+  const fileNameRef = useRef('')
+  const autoRepairRef = useRef(false)
+  const repairRef = useRef<(value: string, useAutoRepair?: boolean) => RepairResult>(() => ({ success: false, original: '', corrected: '', repairs: [] }))
+
   const {
-    content, setContent, setValidationErrors, setStatistics,
-    addConsoleEntry, setRunning, pushRunEntry, setBottomTab, fileName,
+    setValidationErrors, setStatistics,
+    addConsoleEntry, setRunning, pushRunEntry, setBottomTab,
   } = useEditorStore()
+  const storeRef = useRef(useEditorStore.getState())
+  storeRef.current = useEditorStore.getState()
   const { autoRepair } = useSettingsStore()
   const { repair } = useRepair()
+
+  contentRef.current = storeRef.current.content
+  fileNameRef.current = storeRef.current.fileName || 'untitled.json'
+  autoRepairRef.current = autoRepair
+  repairRef.current = repair
 
   const run = useCallback(() => {
     const start = performance.now()
     setRunning(true)
     clearMarkers()
 
-    const trimmed = content.trim()
+    const currentContent = contentRef.current
+    const trimmed = currentContent.trim()
     if (!trimmed) {
       setRunning(false)
       toast.error('Nothing to validate')
       return
     }
 
-    const result = validateJson(content)
+    const result = validateJson(currentContent)
     const duration = performance.now() - start
-    const stats = result.valid ? computeStatistics(content) : null
+    const stats = result.valid ? computeStatistics(currentContent) : null
 
     setValidationErrors(result.errors)
     setStatistics(stats)
@@ -47,7 +61,7 @@ export function useRun() {
       toast.success('JSON is valid')
       pushRunEntry({
         id: generateId(), timestamp: Date.now(), success: true,
-        duration: Math.round(duration), errorCount: 0, fileName: fileName || 'untitled.json',
+        duration: Math.round(duration), errorCount: 0, fileName: fileNameRef.current,
       })
     } else {
       trackActivity({ type: 'validate', label: `Run: ${result.errors.length} error(s)`, path: '/' })
@@ -68,16 +82,16 @@ export function useRun() {
       pushRunEntry({
         id: generateId(), timestamp: Date.now(), success: false,
         duration: Math.round(duration), errorCount: result.errors.length,
-        fileName: fileName || 'untitled.json',
+        fileName: fileNameRef.current,
       })
 
-      if (autoRepair) {
-        const repairResult = repair(content, true)
-        if (repairResult.success && repairResult.corrected !== content) {
-          setContent(repairResult.corrected)
-          const revalidate = validateJson(repairResult.corrected)
+      if (autoRepairRef.current) {
+        const repairResult = repairRef.current(currentContent, true)
+        if (repairResult.success && repairResult.corrected !== currentContent) {
+          const corrected = repairResult.corrected
+          const revalidate = validateJson(corrected)
           setValidationErrors(revalidate.errors)
-          setStatistics(revalidate.valid ? computeStatistics(repairResult.corrected) : null)
+          setStatistics(revalidate.valid ? computeStatistics(corrected) : null)
           if (revalidate.valid) {
             clearMarkers()
             toast.success('✅ JSON repaired successfully')
@@ -97,8 +111,8 @@ export function useRun() {
     }
 
     setRunning(false)
-  }, [content, fileName, autoRepair, setContent, setValidationErrors, setStatistics,
-      addConsoleEntry, setRunning, pushRunEntry, setBottomTab, repair])
+  }, [setValidationErrors, setStatistics,
+      addConsoleEntry, setRunning, pushRunEntry, setBottomTab])
 
   return { run }
 }

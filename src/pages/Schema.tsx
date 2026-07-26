@@ -10,7 +10,7 @@ import toast from 'react-hot-toast'
 
 export default function SchemaPage() {
   const content = useEditorStore((s) => s.content)
-  const { schema, result, isValidSchema, loadSchema, validate, clear } = useSchema()
+  const { result, isValidSchema, loadSchema, validate, clear } = useSchema()
   const [schemaInput, setSchemaInput] = useState('')
   const schemaInputRef = useRef<HTMLInputElement>(null)
 

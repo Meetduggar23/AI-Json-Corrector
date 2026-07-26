@@ -4,8 +4,9 @@ import { ChevronDown, ChevronRight, FolderOpen, Wrench, BookOpen, History, FileT
 import { useEditorStore, useSettingsStore } from '@/store/editorStore'
 import { cn } from '@/utils/helpers'
 import { minifyJson, beautifyJson } from '@/services/formatter'
-import { computeDiff } from '@/services/diff'
+import { diffArrays } from 'diff'
 import type { LucideIcon } from 'lucide-react'
+import type { JsonStatistics } from '@/types/json'
 
 function clamp(v: number, min: number, max: number) {
   return Math.min(max, Math.max(min, v))
@@ -13,11 +14,23 @@ function clamp(v: number, min: number, max: number) {
 
 function lineDiff(original: string, modified: string) {
   if (!original && !modified) return { added: 0, removed: 0, modified: 0 }
-  const result = computeDiff(original, modified)
-  const added = result.right.filter((l) => l.type === 'added').length
-  const removed = result.left.filter((l) => l.type === 'removed').length
-  const changed = result.left.filter((l) => l.type === 'removed').length
-  return { added, removed, modified: clamp(changed, 0, changed) }
+  const changes = diffArrays(original.split('\n'), modified.split('\n'))
+  let added = 0, removed = 0, modifiedCount = 0
+  for (let i = 0; i < changes.length; i++) {
+    const c = changes[i]
+    if (c.added) {
+      if (i > 0 && changes[i - 1].removed) {
+        modifiedCount += Math.min(changes[i - 1].count || 0, c.count || 0)
+      } else {
+        added += c.count || 0
+      }
+    } else if (c.removed) {
+      if (i === changes.length - 1 || !changes[i + 1].added) {
+        removed += c.count || 0
+      }
+    }
+  }
+  return { added, removed, modified: clamp(modifiedCount, 0, modifiedCount) }
 }
 
 function getJsonRootType(json: string): string {
@@ -84,16 +97,14 @@ export function RightPanel() {
         <Row icon={History} label="History Entries" value={String(historyLen)} />
       </Section>
 
-      {(path === navPaths.validator || path === navPaths.dashboard || path === navPaths.repair || path === navPaths.beautify || path === navPaths.minify || path === navPaths.schema || path === navPaths.diff || path === navPaths.history || path === navPaths.settings || path === navPaths.workspace) && (
-        <Section title={getContextTitle(path)} open={contextOpen} onToggle={setContextOpen}>
-          {renderContext(path, {
-            hasContent, errorCount, firstError, statistics,
-            diffStats, recentRepairs, content, originalContent,
-            originalSize, formattedSize, compressedSize, savedBytes,
-            rootType, path, theme, fontSize, tabSize, navigate,
-          })}
-        </Section>
-      )}
+      <Section title={getContextTitle(path)} open={contextOpen} onToggle={setContextOpen}>
+        {renderContext(path, {
+          hasContent, errorCount, firstError, statistics,
+          diffStats, recentRepairs, content, originalContent,
+          originalSize, formattedSize, compressedSize, savedBytes,
+          rootType, path, theme, fontSize, tabSize, navigate,
+        })}
+      </Section>
 
       {hasContent && (
         <Section title="Inspector" open={inspectorOpen} onToggle={setInspectorOpen}>
@@ -149,7 +160,7 @@ interface ContextProps {
   hasContent: boolean
   errorCount: number
   firstError: { line: number; column: number; message: string } | undefined
-  statistics: typeof import('@/store/editorStore').useEditorStore extends (s: any) => infer R ? R : never
+  statistics: JsonStatistics | null
   diffStats: { added: number; removed: number; modified: number }
   recentRepairs: number
   content: string
@@ -274,12 +285,12 @@ function formatSize(bytes: number): string {
 }
 
 const shortcutItems = [
-  { label: 'Open File', key: 'Ctrl+O' },
-  { label: 'Save', key: 'Ctrl+S' },
+  { label: 'Run Validation', key: 'Ctrl+Enter' },
+  { label: 'Save / Download', key: 'Ctrl+S' },
   { label: 'Search', key: 'Ctrl+F' },
-  { label: 'Repair', key: 'Ctrl+R' },
-  { label: 'Beautify', key: 'Ctrl+Shift+F' },
-  { label: 'Download', key: 'Ctrl+D' },
+  { label: 'Toggle Sidebar', key: 'Ctrl+Shift+B' },
+  { label: 'Toggle Panel', key: 'Ctrl+Shift+]' },
+  { label: 'Rename File', key: 'F2' },
 ]
 
 function Row({ icon: Icon, label, value }: { icon: LucideIcon; label: string; value: string }) {

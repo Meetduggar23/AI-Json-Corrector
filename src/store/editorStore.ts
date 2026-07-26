@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import type { ValidationError, JsonStatistics, HistoryEntry, RunEntry } from '@/types/json'
 import type { ConsoleEntry, EditorSettings } from '@/types/editor'
+import { STORAGE_KEY_RECENT_FILES, STORAGE_KEY_RUN_HISTORY } from '@/constants'
 
 interface RecentFile {
   id: string
@@ -45,8 +46,7 @@ interface EditorState {
   pushRunEntry: (entry: RunEntry) => void
 }
 
-const RECENT_FILES_KEY = 'json-corrector-recent-files'
-const RUN_HISTORY_KEY = 'json-corrector-run-history'
+const RUN_HISTORY_KEY = STORAGE_KEY_RUN_HISTORY
 
 function loadRunHistory(): RunEntry[] {
   try {
@@ -84,13 +84,13 @@ export const useEditorStore = create<EditorState>((set, get) => ({
     set({ fileName: newName })
     document.title = `${newName} - JSON Corrector`
     try {
-      const raw = localStorage.getItem(RECENT_FILES_KEY)
+      const raw = localStorage.getItem(STORAGE_KEY_RECENT_FILES)
       if (raw) {
         const files: RecentFile[] = JSON.parse(raw)
         const idx = files.findIndex(f => f.name === oldName)
         if (idx !== -1) {
           files[idx].name = newName
-          localStorage.setItem(RECENT_FILES_KEY, JSON.stringify(files))
+          localStorage.setItem(STORAGE_KEY_RECENT_FILES, JSON.stringify(files))
         }
       }
     } catch {}

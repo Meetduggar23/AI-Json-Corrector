@@ -10,7 +10,7 @@ import { downloadJson } from '@/utils/download'
 import { readFileAsText } from '@/utils/upload'
 import { generateId } from '@/utils/helpers'
 import { computeStatistics } from '@/utils/statistics'
-import { isValidJson } from '@/services/formatter'
+import { validateJson } from '@/services/validator'
 import toast from 'react-hot-toast'
 import type { LucideIcon } from 'lucide-react'
 
@@ -136,8 +136,8 @@ export function TopToolbar() {
       setContent(text)
       setFileName(file.name)
       setStatistics(computeStatistics(text))
-      const valid = isValidJson(text)
-      setValidationErrors(valid ? [] : [{ line: 1, column: 1, message: 'Invalid JSON', type: 'syntax' as const }])
+      const result = validateJson(text)
+      setValidationErrors(result.errors)
       pushHistory({ id: generateId(), content: text, timestamp: Date.now(), label: `Opened ${file.name}` })
       addConsoleEntry({ id: generateId(), type: 'info', message: `Opened ${file.name}`, timestamp: Date.now() })
       toast.success(`Loaded ${file.name}`)

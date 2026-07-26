@@ -1,0 +1,169 @@
+import { useRef, useEffect } from 'react'
+import {
+  XCircle, CheckCircle, Terminal, Info, Clock, FileSearch,
+} from 'lucide-react'
+import { useEditorStore } from '@/store/editorStore'
+import { cn } from '@/utils/helpers'
+
+const tabs = [
+  { id: 'problems' as const, label: 'Problems', icon: XCircle },
+  { id: 'output' as const, label: 'Output', icon: Terminal },
+  { id: 'logs' as const, label: 'Logs', icon: Info },
+  { id: 'history' as const, label: 'History', icon: Clock },
+  { id: 'schema' as const, label: 'Schema', icon: FileSearch },
+]
+
+const typeStyles = {
+  info: { color: 'text-text-secondary', icon: 'ℹ' },
+  success: { color: 'text-success', icon: '✓' },
+  warning: { color: 'text-warning', icon: '⚠' },
+  error: { color: 'text-danger', icon: '✕' },
+}
+
+export function BottomConsole() {
+  const { bottomTab, setBottomTab, consoleEntries, validationErrors, clearConsole } = useEditorStore()
+  const scrollRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight
+    }
+  }, [consoleEntries, bottomTab])
+
+  return (
+    <div className="h-full bg-bg-primary flex flex-col">
+      <div className="flex items-center h-9 px-4 shrink-0 border-b border-border gap-0">
+        {tabs.map((tab) => {
+          const Icon = tab.icon
+          const isActive = bottomTab === tab.id
+          const count = tab.id === 'problems' ? validationErrors.length : 0
+          return (
+            <button
+              key={tab.id}
+              onClick={() => setBottomTab(tab.id)}
+              role="tab"
+              aria-selected={isActive}
+              className={cn(
+                'flex items-center gap-1.5 h-full px-3 text-[12px] font-medium transition-colors relative',
+                isActive
+                  ? 'text-text-primary'
+                  : 'text-text-muted hover:text-text-secondary'
+              )}
+            >
+              <Icon size={13} />
+              <span>{tab.label}</span>
+              {count > 0 && (
+                <span className="min-w-[18px] h-[18px] rounded-full bg-danger text-white text-[9px] flex items-center justify-center font-semibold px-1">
+                  {count}
+                </span>
+              )}
+              {isActive && (
+                <span className="absolute bottom-0 left-2 right-2 h-[2px] bg-accent rounded-full" />
+              )}
+            </button>
+          )
+        })}
+        <div className="flex-1" />
+        <button
+          onClick={clearConsole}
+          className="text-[11px] text-text-muted hover:text-text-primary transition-colors px-2 h-full"
+        >
+          Clear
+        </button>
+      </div>
+      <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-2 font-mono text-[12px]">
+        {bottomTab === 'problems' && <ProblemsTab errors={validationErrors} />}
+        {bottomTab === 'output' && <OutputTab />}
+        {bottomTab === 'logs' && <LogsTab entries={consoleEntries} />}
+        {bottomTab === 'history' && <HistoryTab />}
+        {bottomTab === 'schema' && (
+          <div className="text-text-muted py-3 text-[11px]">Run schema validation to see results here.</div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+function ProblemsTab({ errors }: { errors: { line: number; column: number; message: string }[] }) {
+  if (errors.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full text-center py-8">
+        <CheckCircle size={22} className="text-success mb-2" />
+        <p className="text-text-primary text-[13px] font-medium">No problems detected</p>
+        <p className="text-text-muted text-[12px] mt-0.5">Your JSON is valid and well-formed.</p>
+      </div>
+    )
+  }
+  return (
+    <div className="space-y-0.5">
+      {errors.map((err, i) => (
+        <div key={i} className="flex items-start gap-2.5 py-1.5 px-2 rounded-lg hover:bg-hover">
+          <XCircle size={13} className="text-danger shrink-0 mt-0.5" />
+          <span className="text-text-primary">{err.message}</span>
+          <span className="text-text-muted ml-auto shrink-0 text-[10px]">L{err.line}:{err.column}</span>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+function OutputTab() {
+  return (
+    <div className="space-y-2 py-1">
+      <div className="flex items-center gap-2 text-success">
+        <CheckCircle size={13} />
+        <span className="text-[13px]">JSON Corrector ready</span>
+      </div>
+      <p className="text-text-muted text-[11px] pl-5">All features operate offline. No data is sent to any server.</p>
+    </div>
+  )
+}
+
+function LogsTab({ entries }: { entries: ReturnType<typeof useEditorStore.getState>['consoleEntries'] }) {
+  if (entries.length === 0) {
+    return <div className="text-text-muted italic text-[11px] py-2">No log entries yet.</div>
+  }
+  return (
+    <div className="space-y-0.5">
+      {entries.slice(-50).map((entry) => {
+        const style = typeStyles[entry.type]
+        return (
+          <div key={entry.id} className="flex items-start gap-2 py-0.5 px-1 rounded-lg hover:bg-hover">
+            <span className={cn('text-xs shrink-0 mt-0.5', style.color)}>{style.icon}</span>
+            <span className="text-text-primary flex-1">{entry.message}</span>
+            <span className="text-text-muted shrink-0 text-[10px]">
+              {new Date(entry.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+            </span>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
+function HistoryTab() {
+  const { history, setContent } = useEditorStore()
+  if (history.length === 0) {
+    return <div className="text-text-muted italic text-[11px] py-2">No history yet.</div>
+  }
+  return (
+    <div className="space-y-0.5">
+      {history.slice(-20).reverse().map((entry) => (
+        <div key={entry.id} className="flex items-center justify-between py-1.5 px-2 rounded-lg hover:bg-hover">
+          <div className="min-w-0 flex-1">
+            <span className="text-text-primary text-[12px]">{entry.label}</span>
+            <span className="text-text-muted ml-2 text-[10px]">
+              {new Date(entry.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+            </span>
+          </div>
+          <button
+            onClick={() => setContent(entry.content)}
+            className="text-[10px] text-accent hover:text-accent-hover shrink-0 ml-2 font-medium"
+          >
+            Restore
+          </button>
+        </div>
+      ))}
+    </div>
+  )
+}

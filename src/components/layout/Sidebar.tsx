@@ -1,7 +1,7 @@
 import { useLocation, useNavigate } from 'react-router-dom'
 import {
   LayoutDashboard, FileJson, FileCheck, Wrench,
-  FileSearch, GitCompare, Clock, Settings, Sun, Moon, Monitor,
+  FileSearch, GitCompare, Clock, Settings,   Sun, Moon,
 } from 'lucide-react'
 import { cn } from '@/utils/helpers'
 import { useTheme } from '@/hooks/useTheme'
@@ -20,9 +20,9 @@ const navItems = [
 export function Sidebar() {
   const location = useLocation()
   const navigate = useNavigate()
-  const { theme, resolvedTheme } = useTheme()
-  const themeLabel = theme === 'system' ? 'System' : resolvedTheme === 'dark' ? 'Dark' : 'Light'
-  const ThemeIcon = theme === 'system' ? Monitor : resolvedTheme === 'dark' ? Moon : Sun
+  const { resolvedTheme } = useTheme()
+  const themeLabel = resolvedTheme === 'dark' ? 'Dark' : 'Light'
+  const ThemeIcon = resolvedTheme === 'dark' ? Moon : Sun
 
   return (
     <nav className="w-[240px] h-full bg-sidebar border-r border-border flex flex-col shrink-0 overflow-hidden select-none">

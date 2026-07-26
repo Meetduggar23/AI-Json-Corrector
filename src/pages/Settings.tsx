@@ -56,10 +56,9 @@ const settingGroups: {
 ]
 
 const appThemeOptions = [
-  { label: 'Dark', value: 'dark' },
-  { label: 'Light', value: 'light' },
-  { label: 'System', value: 'system' },
-] as const
+  { label: 'Dark', value: 'dark' as const },
+  { label: 'Light', value: 'light' as const },
+]
 
 export default function SettingsPage() {
   const settings = useSettingsStore()
@@ -81,11 +80,10 @@ export default function SettingsPage() {
           <div className="flex gap-2">
             {appThemeOptions.map((opt) => {
               const isActive = appTheme === opt.value
-              const isResolved = opt.value === 'system' ? resolvedTheme : opt.value
               return (
                 <button
                   key={opt.value}
-                  onClick={() => setTheme(opt.value as 'dark' | 'light' | 'system')}
+                  onClick={() => setTheme(opt.value)}
                   className={`flex-1 flex flex-col items-center gap-2 rounded-xl border p-4 transition-all duration-150 ${
                     isActive
                       ? 'border-accent bg-accent/5'
@@ -93,22 +91,17 @@ export default function SettingsPage() {
                   }`}
                 >
                   <span className={`w-full h-12 rounded-lg flex items-center justify-center ${
-                    isResolved === 'dark'
+                    opt.value === 'dark'
                       ? 'bg-[#0F172A] text-[#F8FAFC]'
                       : 'bg-[#F8FAFC] text-[#0F172A]'
                   }`}>
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       {opt.value === 'dark' ? (
                         <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" />
-                      ) : opt.value === 'light' ? (
+                      ) : (
                         <>
                           <circle cx="12" cy="12" r="4" />
                           <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" />
-                        </>
-                      ) : (
-                        <>
-                          <rect x="2" y="3" width="20" height="14" rx="2" />
-                          <path d="M8 21h8M12 17v4" />
                         </>
                       )}
                     </svg>
@@ -122,7 +115,6 @@ export default function SettingsPage() {
           </div>
           <p className="text-xs text-text-muted mt-2">
             Current: <span className="font-medium capitalize">{resolvedTheme}</span>
-            {appTheme === 'system' && ' (follows OS) '}
           </p>
         </div>
 

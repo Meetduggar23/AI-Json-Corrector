@@ -36,14 +36,14 @@ function loadRecentFiles(): RecentFile[] {
   try {
     const raw = localStorage.getItem(STORAGE_KEY_FILES)
     if (raw) return JSON.parse(raw)
-  } catch {}
+  } catch { }
   return []
 }
 
 function saveRecentFiles(files: RecentFile[]): void {
   try {
     localStorage.setItem(STORAGE_KEY_FILES, JSON.stringify(files.slice(0, 20)))
-  } catch {}
+  } catch { }
 }
 
 function trackFileOpen(name: string, content: string, status: 'valid' | 'invalid', size: number): void {
@@ -53,7 +53,7 @@ function trackFileOpen(name: string, content: string, status: 'valid' | 'invalid
     if (existing >= 0) files.splice(existing, 1)
     files.unshift({ id: generateId(), name, content, status, size, timestamp: Date.now() })
     saveRecentFiles(files)
-  } catch {}
+  } catch { }
 }
 
 const bottomTabs = [
@@ -132,23 +132,25 @@ export function Dashboard() {
     <div className="h-full flex flex-col overflow-hidden">
       <input ref={fileInputRef} type="file" accept=".json,.txt" onChange={handleFileChange} className="hidden" />
 
-      <div className="flex-1 overflow-y-auto" style={{ padding: '32px' }}>
-        <div style={{ maxWidth: '1280px' }}>
+      <div className="flex-1 overflow-y-auto overflow-x-auto" style={{ padding: '32px' }}>
+        <div style={{ minWidth: '640px', maxWidth: '1280px' }}>
           <div style={{ marginBottom: '32px' }}>
             <h1 style={{ fontSize: '48px', fontWeight: 700, lineHeight: 1.1, letterSpacing: '-0.02em' }} className="text-text-primary">
               Welcome back<span className="inline-block">{'\u{1F44B}'}</span>
             </h1>
             <p style={{ fontSize: '15px', marginTop: '8px' }} className="text-text-secondary">
-              Validate, repair and format your JSON files locally. Fast, private and offline.
+              Validate, repair and format your JSON files locally.
             </p>
           </div>
 
           <section style={{ marginBottom: '32px' }}>
             <h2 style={{ fontSize: '24px', fontWeight: 600, marginBottom: '20px' }} className="text-text-primary">Quick Actions</h2>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' }}>
-              {ACTIONS.map((action) => (
-                <ActionCard key={action.path} action={action} onClick={() => handleAction(action)} />
-              ))}
+            <div className="overflow-x-auto -mx-2 px-2">
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', minWidth: '600px' }}>
+                {ACTIONS.map((action) => (
+                  <ActionCard key={action.path} action={action} onClick={() => handleAction(action)} />
+                ))}
+              </div>
             </div>
           </section>
 

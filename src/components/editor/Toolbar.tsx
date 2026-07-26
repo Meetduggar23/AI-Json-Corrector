@@ -1,12 +1,10 @@
 import { useRef, useCallback } from 'react'
 import {
-  FolderOpen, Save, Undo2, Redo2, Sparkles, Wrench,
-  FileCheck, Copy, Clipboard,
+  FolderOpen, Save, Undo2, Redo2, Sparkles, Wrench, Copy, Clipboard,
 } from 'lucide-react'
 import { useEditorStore } from '@/store/editorStore'
 import { useRepair } from '@/hooks/useRepair'
 import { useSettingsStore } from '@/store/editorStore'
-import { useValidator } from '@/hooks/useValidator'
 import { beautifyJson } from '@/services/formatter'
 import { downloadJson } from '@/utils/download'
 import { readFileAsText } from '@/utils/upload'
@@ -17,7 +15,6 @@ export function EditorToolbar() {
   const { content, setContent, pushHistory, undo, redo, historyIndex, history, setFileName } = useEditorStore()
   const { tabSize, indentStyle } = useSettingsStore()
   const { repair } = useRepair()
-  const { validate } = useValidator()
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const handleOpen = async () => {
@@ -63,15 +60,6 @@ export function EditorToolbar() {
     }
   }, [content, repair])
 
-  const handleValidate = useCallback(() => {
-    const result = validate(content)
-    if (result) {
-      toast.success('JSON is valid')
-    } else {
-      toast.error('JSON validation failed')
-    }
-  }, [content, validate])
-
   const handleCopy = async () => {
     await navigator.clipboard.writeText(content)
     toast.success('Copied')
@@ -95,7 +83,6 @@ export function EditorToolbar() {
       <span className="w-px h-3.5 bg-border mx-0.5" />
       <EditorBtn icon={Sparkles} onClick={handleFormat} label="Format" />
       <EditorBtn icon={Wrench} onClick={handleRepair} label="Repair" />
-      <EditorBtn icon={FileCheck} onClick={handleValidate} label="Validate" />
       <span className="w-px h-3.5 bg-border mx-0.5" />
       <EditorBtn icon={Copy} onClick={handleCopy} label="Copy" />
       <EditorBtn icon={Clipboard} onClick={handlePaste} label="Paste" />

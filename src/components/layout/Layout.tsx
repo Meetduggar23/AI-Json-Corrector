@@ -5,9 +5,11 @@ import { Sidebar } from './Sidebar'
 import { RightPanel } from './RightPanel'
 import { StatusBar } from './StatusBar'
 import { useEditorStore } from '@/store/editorStore'
+import { useRun } from '@/hooks/useRun'
 
 export function Layout() {
   const { isSidebarOpen, isRightPanelOpen, toggleSidebar, toggleRightPanel } = useEditorStore()
+  const { run } = useRun()
   const [rightWidth, setRightWidth] = useState(320)
   const isDraggingRight = useRef(false)
 
@@ -40,6 +42,10 @@ export function Layout() {
       e.preventDefault()
       window.dispatchEvent(new CustomEvent('editor:rename'))
     }
+    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+      e.preventDefault()
+      run()
+    }
     if (e.ctrlKey && e.shiftKey && e.key === 'b') {
       e.preventDefault()
       toggleSidebar()
@@ -48,7 +54,7 @@ export function Layout() {
       e.preventDefault()
       toggleRightPanel()
     }
-  }, [toggleSidebar, toggleRightPanel])
+  }, [toggleSidebar, toggleRightPanel, run])
 
   useEffect(() => {
     document.addEventListener('keydown', handleKeyDown)

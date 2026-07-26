@@ -1,58 +1,39 @@
 import { createContext, useContext, useEffect, useState, useCallback, type ReactNode } from 'react'
 
-type Theme = 'light' | 'dark' | 'system'
+type Theme = 'light' | 'dark'
 
 interface ThemeContextType {
   theme: Theme
   resolvedTheme: 'light' | 'dark'
-  systemTheme: 'light' | 'dark'
   setTheme: (theme: Theme) => void
 }
 
 const ThemeContext = createContext<ThemeContextType>({
-  theme: 'system',
+  theme: 'dark',
   resolvedTheme: 'dark',
-  systemTheme: 'dark',
   setTheme: () => {},
 })
-
-function getSystemTheme(): 'light' | 'dark' {
-  if (typeof window === 'undefined') return 'dark'
-  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
-}
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [theme, setThemeState] = useState<Theme>(() => {
     try {
       const stored = localStorage.getItem('json-corrector-theme')
-      if (stored === 'light' || stored === 'dark' || stored === 'system') return stored
+      if (stored === 'light' || stored === 'dark') return stored
     } catch {}
-    return 'system'
+    return 'dark'
   })
 
-  const [systemTheme, setSystemTheme] = useState<'light' | 'dark'>(getSystemTheme)
   const [resolvedTheme, setResolvedTheme] = useState<'light' | 'dark'>('dark')
 
-  const applyTheme = useCallback((t: Theme, system: 'light' | 'dark') => {
-    const resolved = t === 'system' ? system : t
-    setResolvedTheme(resolved)
-    document.documentElement.setAttribute('data-theme', resolved)
+  const applyTheme = useCallback((t: Theme) => {
+    setResolvedTheme(t)
+    document.documentElement.setAttribute('data-theme', t)
     try { localStorage.setItem('json-corrector-theme', t) } catch {}
   }, [])
 
   useEffect(() => {
-    applyTheme(theme, systemTheme)
-  }, [theme, systemTheme, applyTheme])
-
-  useEffect(() => {
-    const mq = window.matchMedia('(prefers-color-scheme: dark)')
-    const handler = () => {
-      const newSystem = mq.matches ? 'dark' : 'light'
-      setSystemTheme(newSystem)
-    }
-    mq.addEventListener('change', handler)
-    return () => mq.removeEventListener('change', handler)
-  }, [])
+    applyTheme(theme)
+  }, [theme, applyTheme])
 
   useEffect(() => {
     const html = document.documentElement
@@ -66,7 +47,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   }, [])
 
   return (
-    <ThemeContext.Provider value={{ theme, resolvedTheme, systemTheme, setTheme }}>
+    <ThemeContext.Provider value={{ theme, resolvedTheme, setTheme }}>
       {children}
     </ThemeContext.Provider>
   )

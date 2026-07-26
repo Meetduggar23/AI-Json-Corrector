@@ -1,10 +1,11 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
-  FolderOpen, FilePlus, Search, Save, Settings, Sun, Moon, Monitor, Pencil,
+  FolderOpen, FilePlus, Search, Save, Settings, Sun, Moon, Pencil, Play, Loader2,
 } from 'lucide-react'
 import { useEditorStore } from '@/store/editorStore'
 import { useTheme } from '@/hooks/useTheme'
+import { useRun } from '@/hooks/useRun'
 import { downloadJson } from '@/utils/download'
 import { readFileAsText } from '@/utils/upload'
 import { generateId } from '@/utils/helpers'
@@ -12,8 +13,6 @@ import { computeStatistics } from '@/utils/statistics'
 import { isValidJson } from '@/services/formatter'
 import toast from 'react-hot-toast'
 import type { LucideIcon } from 'lucide-react'
-
-type Theme = 'light' | 'dark' | 'system'
 
 function sanitizeFilename(name: string): string {
   let trimmed = name.trim().slice(0, 100)
@@ -116,6 +115,8 @@ export function TopToolbar() {
     setFileName, setStatistics, setValidationErrors, renameFile,
   } = useEditorStore()
   const { theme, resolvedTheme, setTheme } = useTheme()
+  const { run } = useRun()
+  const isRunning = useEditorStore((s) => s.isRunning)
   const navigate = useNavigate()
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -174,13 +175,10 @@ export function TopToolbar() {
   }
 
   const cycleTheme = () => {
-    const order: Theme[] = ['light', 'dark', 'system']
-    const currentIndex = order.indexOf(theme as Theme)
-    const nextTheme = order[(currentIndex + 1) % order.length]
-    setTheme(nextTheme)
+    setTheme(theme === 'dark' ? 'light' : 'dark')
   }
 
-  const ThemeIcon = theme === 'system' ? Monitor : resolvedTheme === 'dark' ? Sun : Moon
+  const ThemeIcon = resolvedTheme === 'dark' ? Sun : Moon
 
   const handleRename = useCallback((newName: string) => {
     renameFile(fileName || 'untitled.json', newName)
@@ -206,12 +204,28 @@ export function TopToolbar() {
         <input ref={fileInputRef} type="file" accept=".json" onChange={handleFileChange} className="hidden" />
         <ToolBtn icon={FolderOpen} onClick={handleOpen} label="Open File" variant="outlined" />
         <ToolBtn icon={FilePlus} onClick={handleNew} label="New File" variant="primary" />
+        <RunBtn onClick={run} loading={isRunning} />
         <IconBtn icon={Search} onClick={handleSearch} label="Search (Ctrl+F)" />
         <IconBtn icon={Save} onClick={handleSave} label="Save (Ctrl+S)" />
         <IconBtn icon={Settings} onClick={handleSettings} label="Settings" />
         <IconBtn icon={ThemeIcon} onClick={cycleTheme} label={`Theme: ${theme}`} />
       </div>
     </header>
+  )
+}
+
+function RunBtn({ onClick, loading }: { onClick: () => void; loading: boolean }) {
+  return (
+    <button
+      onClick={onClick}
+      disabled={loading}
+      className="inline-flex items-center gap-2 rounded-xl bg-accent text-white text-[14px] font-semibold hover:brightness-110 transition-all duration-150 disabled:opacity-50 disabled:cursor-wait"
+      style={{ height: '40px', padding: '0 20px', borderRadius: '10px' }}
+      title="Run (Ctrl+Enter)"
+    >
+      {loading ? <Loader2 size={18} className="animate-spin" /> : <Play size={18} fill="currentColor" />}
+      <span>Run</span>
+    </button>
   )
 }
 

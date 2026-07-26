@@ -4,6 +4,7 @@ import {
 } from 'lucide-react'
 import { useEditorStore } from '@/store/editorStore'
 import { cn } from '@/utils/helpers'
+import { revealPosition } from '@/utils/editorApi'
 
 const tabs = [
   { id: 'problems' as const, label: 'Problems', icon: XCircle },
@@ -84,7 +85,7 @@ export function BottomConsole() {
   )
 }
 
-function ProblemsTab({ errors }: { errors: { line: number; column: number; message: string }[] }) {
+function ProblemsTab({ errors }: { errors: { line: number; column: number; message: string; type?: string; suggestion?: string }[] }) {
   if (errors.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center h-full text-center py-8">
@@ -97,11 +98,25 @@ function ProblemsTab({ errors }: { errors: { line: number; column: number; messa
   return (
     <div className="space-y-0.5">
       {errors.map((err, i) => (
-        <div key={i} className="flex items-start gap-2.5 py-1.5 px-2 rounded-lg hover:bg-hover">
+        <button
+          key={i}
+          onClick={() => revealPosition(err.line, err.column)}
+          className="flex items-start gap-2.5 py-1.5 px-2 rounded-lg hover:bg-hover w-full text-left transition-colors"
+        >
           <XCircle size={13} className="text-danger shrink-0 mt-0.5" />
-          <span className="text-text-primary">{err.message}</span>
-          <span className="text-text-muted ml-auto shrink-0 text-[10px]">L{err.line}:{err.column}</span>
-        </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2">
+              <span className="text-text-primary text-[12px]">{err.message}</span>
+              {err.type && (
+                <span className="text-[10px] uppercase tracking-wider text-text-muted font-medium shrink-0">{err.type}</span>
+              )}
+            </div>
+            {err.suggestion && (
+              <p className="text-text-muted text-[10px] mt-0.5">Suggestion: {err.suggestion}</p>
+            )}
+          </div>
+          <span className="text-text-muted shrink-0 text-[10px] font-mono">L{err.line}:{err.column}</span>
+        </button>
       ))}
     </div>
   )

@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import type { ValidationError, JsonStatistics, HistoryEntry } from '@/types/json'
+import type { ValidationError, JsonStatistics, HistoryEntry, RunEntry } from '@/types/json'
 import type { ConsoleEntry, EditorSettings } from '@/types/editor'
 
 interface RecentFile {
@@ -23,6 +23,8 @@ interface EditorState {
   isSidebarOpen: boolean
   isRightPanelOpen: boolean
   bottomTab: 'problems' | 'output' | 'logs' | 'history' | 'schema'
+  isRunning: boolean
+  runHistory: RunEntry[]
 
   setContent: (content: string) => void
   setOriginalContent: (content: string) => void
@@ -39,9 +41,20 @@ interface EditorState {
   toggleRightPanel: () => void
   setBottomTab: (tab: 'problems' | 'output' | 'logs' | 'history' | 'schema') => void
   clearHistory: () => void
+  setRunning: (running: boolean) => void
+  pushRunEntry: (entry: RunEntry) => void
 }
 
 const RECENT_FILES_KEY = 'json-corrector-recent-files'
+const RUN_HISTORY_KEY = 'json-corrector-run-history'
+
+function loadRunHistory(): RunEntry[] {
+  try {
+    const raw = localStorage.getItem(RUN_HISTORY_KEY)
+    if (raw) return JSON.parse(raw)
+  } catch {}
+  return []
+}
 
 export const useEditorStore = create<EditorState>((set, get) => ({
   content: '',
@@ -55,6 +68,8 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   isSidebarOpen: true,
   isRightPanelOpen: true,
   bottomTab: 'problems',
+  isRunning: false,
+  runHistory: loadRunHistory(),
 
   setContent: (content) => set((state) => ({
     content,
@@ -122,6 +137,12 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   toggleRightPanel: () => set((s) => ({ isRightPanelOpen: !s.isRightPanelOpen })),
   setBottomTab: (tab) => set({ bottomTab: tab }),
   clearHistory: () => set({ history: [], historyIndex: -1 }),
+  setRunning: (running) => set({ isRunning: running }),
+  pushRunEntry: (entry) => set((state) => {
+    const updated = [entry, ...state.runHistory].slice(0, 20)
+    try { localStorage.setItem(RUN_HISTORY_KEY, JSON.stringify(updated)) } catch {}
+    return { runHistory: updated }
+  }),
 }))
 
 interface SettingsState extends EditorSettings {

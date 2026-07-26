@@ -49,3 +49,12 @@ export interface HistoryEntry {
   timestamp: number
   label: string
 }
+
+export interface RunEntry {
+  id: string
+  timestamp: number
+  success: boolean
+  duration: number
+  errorCount: number
+  fileName: string
+}

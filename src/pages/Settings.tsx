@@ -82,6 +82,7 @@ const settingGroups: {
 const appThemeOptions = [
   { label: 'Dark', value: 'dark' as const },
   { label: 'Light', value: 'light' as const },
+  { label: 'System', value: 'system' as const },
 ]
 
 export default function SettingsPage() {
@@ -98,14 +99,14 @@ export default function SettingsPage() {
     <div className="h-full overflow-y-auto">
       <div className="p-6 max-w-2xl">
         <div className="flex items-center justify-between mb-6">
-          <h1 className="text-base font-semibold text-text">Settings</h1>
+          <h1 className="text-[15px] font-bold text-text tracking-tight">Settings</h1>
           <Button variant="ghost" size="xs" onClick={handleReset}>
             Reset Defaults
           </Button>
         </div>
 
         <div className="mb-6">
-          <h2 className="text-sm font-semibold text-text mb-3">Application Theme</h2>
+          <h2 className="text-[12px] font-semibold text-text-muted uppercase tracking-wider mb-3">Application Theme</h2>
           <div className="flex gap-2">
             {appThemeOptions.map((opt) => {
               const isActive = appTheme === opt.value
@@ -113,45 +114,52 @@ export default function SettingsPage() {
                 <button
                   key={opt.value}
                   onClick={() => setTheme(opt.value)}
-                  className={`flex-1 flex flex-col items-center gap-2 rounded-xl border p-4 transition-all duration-150 ${
+                  className={`flex-1 flex flex-col items-center gap-2 border p-4 transition-all duration-150 ${
                     isActive
-                      ? 'border-primary bg-primary/5'
+                      ? 'border-primary bg-primary/5 shadow-sm shadow-primary/10'
                       : 'border-border bg-surface hover:border-text-muted'
                   }`}
                 >
-                  <span className={`w-full h-12 rounded-lg flex items-center justify-center ${
+                  <span className={`w-full h-12 flex items-center justify-center ${
                     opt.value === 'dark'
                       ? 'bg-[#0F172A] text-[#F8FAFC]'
-                      : 'bg-[#F8FAFC] text-[#0F172A]'
+                      : opt.value === 'light'
+                      ? 'bg-[#F8FAFC] text-[#0F172A]'
+                      : 'bg-gradient-to-r from-[#0F172A] to-[#F8FAFC] text-[#94A3B8]'
                   }`}>
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       {opt.value === 'dark' ? (
                         <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" />
-                      ) : (
+                      ) : opt.value === 'light' ? (
                         <>
                           <circle cx="12" cy="12" r="4" />
                           <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" />
                         </>
+                      ) : (
+                        <>
+                          <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" />
+                          <circle cx="12" cy="12" r="4" />
+                        </>
                       )}
                     </svg>
                   </span>
-                  <span className={`text-xs font-medium ${
+                  <span className={`text-[11px] font-medium ${
                     isActive ? 'text-primary' : 'text-text-secondary'
                   }`}>{opt.label}</span>
                 </button>
               )
             })}
           </div>
-          <p className="text-xs text-text-muted mt-2">
-            Current: <span className="font-medium capitalize">{resolvedTheme}</span>
+          <p className="text-[11px] text-text-muted mt-2">
+            Current: <span className="font-medium capitalize">{appTheme === 'system' ? `System (${resolvedTheme})` : appTheme}</span>
           </p>
         </div>
 
-        <h2 className="text-sm font-semibold text-text mb-3">Editor Settings</h2>
-        <div className="space-y-1">
+        <h2 className="text-[12px] font-semibold text-text-muted uppercase tracking-wider mb-3">Editor Settings</h2>
+        <div className="bg-surface border border-border overflow-hidden divide-y divide-border">
           {settingGroups.map((group) => (
-            <div key={group.key} className="flex items-center justify-between h-10 px-3 rounded-lg hover:bg-surface-hover transition-colors">
-              <span className="text-sm text-text">{group.title}</span>
+            <div key={group.key} className="flex items-center justify-between h-11 px-4 hover:bg-surface-hover transition-colors">
+              <span className="text-[12px] text-text">{group.title}</span>
               <div>
                 {group.type === 'select' && group.options && (
                   <select
@@ -160,7 +168,7 @@ export default function SettingsPage() {
                       const opt = group.options?.find((o) => String(o.value) === e.target.value)
                       if (opt) updateSetting(group.key, opt.value as never)
                     }}
-                    className="bg-editor-bg border border-border rounded text-xs text-text px-2.5 py-1.5 outline-none focus:border-primary min-w-[120px]"
+                    className="bg-editor-bg border border-border text-[11px] text-text px-2.5 py-1.5 outline-none focus:border-primary transition-colors min-w-[120px]"
                   >
                     {group.options.map((opt) => (
                       <option key={String(opt.value)} value={String(opt.value)}>
@@ -176,7 +184,7 @@ export default function SettingsPage() {
                     onChange={(e) => updateSetting(group.key, Number(e.target.value) as never)}
                     min={10}
                     max={30}
-                    className="w-16 bg-editor-bg border border-border rounded text-xs text-text px-2.5 py-1.5 outline-none focus:border-primary text-center"
+                    className="w-16 bg-editor-bg border border-border text-[11px] text-text px-2.5 py-1.5 outline-none focus:border-primary text-center transition-colors"
                   />
                 )}
                 {group.type === 'toggle' && (
@@ -184,9 +192,9 @@ export default function SettingsPage() {
                     onClick={() => updateSetting(group.key, !settings[group.key] as never)}
                     role="switch"
                     aria-checked={!!settings[group.key]}
-                    className={`relative w-8 h-4 rounded-full transition-colors ${settings[group.key] ? 'bg-primary' : 'bg-border'}`}
+                    className={`relative w-8 h-[18px] transition-colors ${settings[group.key] ? 'bg-primary' : 'bg-border'}`}
                   >
-                    <div className={`absolute top-0.5 w-3 h-3 rounded-full bg-card transition-transform ${settings[group.key] ? 'translate-x-[18px]' : 'translate-x-[2px]'}`} />
+                    <div className={`absolute top-[2px] w-3.5 h-3.5 bg-white transition-transform ${settings[group.key] ? 'translate-x-[16px]' : 'translate-x-[2px]'}`} />
                   </button>
                 )}
               </div>

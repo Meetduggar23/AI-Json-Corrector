@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useState, useCallback, useRef, type ReactNode } from 'react'
 import { STORAGE_KEY_THEME } from '@/constants'
 
-type Theme = 'light' | 'dark'
+type Theme = 'light' | 'dark' | 'system'
 
 interface ThemeContextType {
   theme: Theme
@@ -15,25 +15,47 @@ const ThemeContext = createContext<ThemeContextType>({
   setTheme: () => {},
 })
 
+function getSystemTheme(): 'light' | 'dark' {
+  if (typeof window !== 'undefined' && window.matchMedia) {
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+  }
+  return 'dark'
+}
+
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [theme, setThemeState] = useState<Theme>(() => {
     try {
       const stored = localStorage.getItem(STORAGE_KEY_THEME)
-      if (stored === 'light' || stored === 'dark') return stored
+      if (stored === 'light' || stored === 'dark' || stored === 'system') return stored
     } catch {}
     return 'dark'
   })
 
-  const [resolvedTheme, setResolvedTheme] = useState<'light' | 'dark'>('dark')
+  const [resolvedTheme, setResolvedTheme] = useState<'light' | 'dark'>(() => {
+    if (theme === 'system') return getSystemTheme()
+    return theme
+  })
 
-  const applyTheme = useCallback((t: Theme) => {
+  const applyTheme = useCallback((t: 'light' | 'dark') => {
     setResolvedTheme(t)
     document.documentElement.setAttribute('data-theme', t)
-    try { localStorage.setItem(STORAGE_KEY_THEME, t) } catch {}
   }, [])
 
   useEffect(() => {
-    applyTheme(theme)
+    const resolved = theme === 'system' ? getSystemTheme() : theme
+    applyTheme(resolved)
+    try { localStorage.setItem(STORAGE_KEY_THEME, theme) } catch {}
+  }, [theme, applyTheme])
+
+  useEffect(() => {
+    if (theme !== 'system') return
+    const mq = window.matchMedia('(prefers-color-scheme: dark)')
+    const handler = () => {
+      const resolved = mq.matches ? 'dark' : 'light'
+      applyTheme(resolved)
+    }
+    mq.addEventListener('change', handler)
+    return () => mq.removeEventListener('change', handler)
   }, [theme, applyTheme])
 
   const isFirstRender = useRef(true)

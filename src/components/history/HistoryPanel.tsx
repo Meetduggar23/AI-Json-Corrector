@@ -19,15 +19,15 @@ export function HistoryPanel() {
 
   return (
     <div>
-      <div className="flex items-center justify-between px-2 py-1.5 border-b border-border">
+      <div className="flex items-center justify-between px-3 py-2 border-b border-border">
         <span className="text-[11px] font-semibold text-text-secondary">History</span>
         <Button variant="ghost" size="xs" icon={<Trash2 size={12} />} onClick={clearHistory}>
           Clear
         </Button>
       </div>
       {history.length === 0 ? (
-        <div className="text-text-muted text-xs text-center py-6">
-          <Clock size={16} className="mx-auto mb-1 opacity-40" />
+        <div className="text-text-muted text-[11px] text-center py-8">
+          <Clock size={16} className="mx-auto mb-2 opacity-30" strokeWidth={1.5} />
           No history yet
         </div>
       ) : (
@@ -35,12 +35,12 @@ export function HistoryPanel() {
           {history.map((entry, index) => (
             <div
               key={entry.id}
-              className="flex items-center justify-between px-2 py-1.5 hover:bg-border/15 cursor-pointer transition-colors"
+              className="flex items-center justify-between px-3 py-2 hover:bg-surface-hover cursor-pointer transition-colors"
               onClick={() => restore(index)}
             >
               <div className="min-w-0 flex-1">
-                <p className="text-xs text-text truncate">{entry.label}</p>
-                <p className="text-[10px] text-text-muted">{dayjs(entry.timestamp).fromNow()}</p>
+                <p className="text-[11px] text-text truncate font-medium">{entry.label}</p>
+                <p className="text-[10px] text-text-muted mt-0.5">{dayjs(entry.timestamp).fromNow()}</p>
               </div>
               {index === historyIndex && (
                 <span className="text-[10px] text-primary font-medium ml-2 shrink-0">Current</span>

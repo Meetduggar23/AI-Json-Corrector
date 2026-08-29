@@ -15,7 +15,7 @@ export function QuickFix() {
   const { applyQuickFix } = useRepair()
 
   return (
-    <div className="grid grid-cols-1 gap-1.5 p-3">
+    <div className="grid grid-cols-1 gap-2 p-3">
       {fixes.map((fix) => {
         const Icon = fix.icon
         return (
@@ -23,13 +23,13 @@ export function QuickFix() {
             key={fix.id}
             variant={fix.variant}
             size="sm"
-            className="justify-start h-9"
-            icon={<Icon size={15} />}
+            className="justify-start h-10"
+            icon={<Icon size={15} strokeWidth={1.75} />}
             onClick={() => applyQuickFix(fix.id)}
           >
             <div className="flex flex-col items-start leading-tight">
-              <span className="text-xs font-medium">{fix.label}</span>
-              <span className="text-[10px] opacity-70">{fix.desc}</span>
+              <span className="text-[11px] font-medium">{fix.label}</span>
+              <span className="text-[9px] opacity-70">{fix.desc}</span>
             </div>
           </Button>
         )

@@ -5,9 +5,36 @@ import { useSettingsStore } from '@/store/editorStore'
 import { setEditorApi } from '@/utils/editorApi'
 import type { editor } from 'monaco-editor'
 
+const DEFAULT_CONTENT = `{
+  "status": "success",
+  "code": 200,
+  "message": "Request completed successfully",
+  "data": {
+    "user": {
+      "id": 12345,
+      "name": "John Doe",
+      "email": "john.doe@example.com",
+      "role": "admin",
+      "isActive": true,
+      "profile": {
+        "age": 28,
+        "address": {
+          "street": "123 Main St",
+          "city": "New York",
+          "state": "NY",
+          "zip": "10001",
+          "country": "USA"
+        },
+        "phone": "+1-555-123-4567"
+      }
+    }
+  }
+}`
+
 export function MonacoEditor() {
   const content = useEditorStore((s) => s.content)
   const setContent = useEditorStore((s) => s.setContent)
+  const setFileName = useEditorStore((s) => s.setFileName)
   const validationErrors = useEditorStore((s) => s.validationErrors)
   const { fontSize, wordWrap, tabSize, minimap, lineNumbers, theme: editorTheme } = useSettingsStore()
   const [mounted, setMounted] = useState(false)
@@ -17,6 +44,14 @@ export function MonacoEditor() {
 
   useEffect(() => {
     setMounted(true)
+  }, [])
+
+  useEffect(() => {
+    if (!content) {
+      setContent(DEFAULT_CONTENT)
+      setFileName('api-response.json')
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const handleMount: OnMount = useCallback((editor, monaco) => {

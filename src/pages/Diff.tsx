@@ -1,48 +1,27 @@
-import { useState } from 'react'
 import { DiffViewer } from '@/components/diff/DiffViewer'
 import { EditorToolbar } from '@/components/editor/Toolbar'
-import { Button } from '@/components/common/Button'
-import { GitCompare, ArrowLeftRight } from 'lucide-react'
+import { DocumentTabs } from '@/components/editor/DocumentTabs'
+import { GitCompare } from 'lucide-react'
 import { useEditorStore } from '@/store/editorStore'
-import toast from 'react-hot-toast'
 
 export default function DiffPage() {
   const content = useEditorStore((s) => s.content)
   const originalContent = useEditorStore((s) => s.originalContent)
-  const [useOriginal, setUseOriginal] = useState(true)
 
-  const left = useOriginal ? originalContent : content
-  const right = useOriginal ? content : originalContent
-  const hasOriginal = Boolean(originalContent)
-
-  const handleSwap = () => {
-    if (!hasOriginal) {
-      toast.error('No original content saved. Try repairing first.')
-      return
-    }
-    setUseOriginal(!useOriginal)
-  }
+  const left = originalContent
+  const right = content
 
   return (
     <div className="h-full flex flex-col">
       <EditorToolbar />
-      <div className="h-9 flex items-center justify-between px-3 border-b border-border bg-topbar-bg/50 shrink-0">
-        <div className="flex items-center gap-2">
-          <GitCompare size={14} className="text-primary" />
-          <span className="text-xs font-medium text-text">Diff Viewer</span>
-          <span className="text-xs text-text-muted">— Compare original and corrected JSON</span>
-        </div>
-        <Button variant="ghost" size="xs" icon={<ArrowLeftRight size={13} />} onClick={handleSwap}>
-          Swap
-        </Button>
-      </div>
+      <DocumentTabs />
       <div className="flex-1">
         {!originalContent || originalContent === content ? (
-          <div className="flex items-center justify-center h-full text-xs text-text-muted">
+          <div className="flex items-center justify-center h-full text-[12px] text-text-muted">
             <div className="text-center">
-              <GitCompare size={28} className="mx-auto mb-2 opacity-40" />
-              <p>No changes to compare</p>
-              <p className="mt-1">Edit the JSON or use Repair to create a diff</p>
+              <GitCompare size={32} className="mx-auto mb-3 opacity-30" strokeWidth={1.5} />
+              <p className="font-medium">No changes to compare</p>
+              <p className="mt-1 text-text-muted">Edit the JSON or use Repair to create a diff</p>
             </div>
           </div>
         ) : (

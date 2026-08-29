@@ -1,5 +1,6 @@
 import { MonacoEditor } from '@/components/editor/MonacoEditor'
 import { EditorToolbar } from '@/components/editor/Toolbar'
+import { DocumentTabs } from '@/components/editor/DocumentTabs'
 import { QuickFix } from '@/components/repair/QuickFix'
 import { Button } from '@/components/common/Button'
 import { Wrench } from 'lucide-react'
@@ -23,20 +24,16 @@ export default function RepairPage() {
   return (
     <div className="h-full flex flex-col">
       <EditorToolbar />
-      <div className="h-9 flex items-center gap-2 px-3 border-b border-border bg-topbar-bg/50 shrink-0">
-        <Wrench size={14} className="text-primary" />
-        <span className="text-xs font-medium text-text">Repair</span>
-        <span className="text-xs text-text-muted">— Fix common JSON errors automatically</span>
-      </div>
+      <DocumentTabs />
       <div className="flex-1 flex">
         <div className="flex-1 flex flex-col">
           <div className="flex-1">
             <MonacoEditor />
           </div>
         </div>
-        <div className="w-[240px] border-l border-border bg-bg flex flex-col">
+        <div className="w-[240px] border-l border-border bg-panel flex flex-col">
           <div className="h-8 flex items-center px-3 border-b border-border shrink-0">
-            <span className="text-[11px] font-semibold text-text-secondary uppercase tracking-wider">Quick Fixes</span>
+            <span className="text-[10px] font-semibold text-text-muted uppercase tracking-wider">Quick Fixes</span>
           </div>
           <QuickFix />
           <div className="p-3 border-t border-border mt-auto">

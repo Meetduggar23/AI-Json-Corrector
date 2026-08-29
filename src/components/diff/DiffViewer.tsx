@@ -11,10 +11,10 @@ export function DiffViewer({ original, corrected }: DiffViewerProps) {
   const diff = useMemo(() => computeDiff(original, corrected), [original, corrected])
 
   return (
-    <div className="flex h-full font-mono text-xs">
+    <div className="flex h-full font-mono text-[11px]">
       <div className="flex-1 border-r border-border">
-        <div className="px-3 py-1.5 bg-surface border-b border-border text-xs font-medium text-text-secondary">Original</div>
-        <div className="overflow-auto h-[calc(100%-32px)] overflow-x-auto">
+        <div className="px-3 py-2 bg-panel border-b border-border text-[11px] font-medium text-text-secondary">Original</div>
+        <div className="overflow-auto h-[calc(100%-36px)] overflow-x-auto">
           {diff.left.map((line, i) => (
             <div
               key={i}
@@ -30,8 +30,8 @@ export function DiffViewer({ original, corrected }: DiffViewerProps) {
         </div>
       </div>
       <div className="flex-1">
-        <div className="px-3 py-1.5 bg-surface border-b border-border text-xs font-medium text-text-secondary">Corrected</div>
-        <div className="overflow-auto h-[calc(100%-32px)] overflow-x-auto">
+        <div className="px-3 py-2 bg-panel border-b border-border text-[11px] font-medium text-text-secondary">Corrected</div>
+        <div className="overflow-auto h-[calc(100%-36px)] overflow-x-auto">
           {diff.right.map((line, i) => (
             <div
               key={i}

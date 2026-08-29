@@ -1,12 +1,8 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
-import {
-  FolderOpen, FilePlus, Search, Save, Settings, Sun, Moon, Monitor,
-  Pencil, Play, Loader2,
-} from 'lucide-react'
-import { useEditorStore } from '@/store/editorStore'
+import { FolderOpen, FilePlus, Search, Save, Settings, Sun, Moon, Pencil, Play, Loader2 } from 'lucide-react'
+import { useEditorStore, useSettingsStore } from '@/store/editorStore'
 import { useTheme } from '@/hooks/useTheme'
-import { useSettingsStore } from '@/store/editorStore'
 import { downloadJson } from '@/utils/download'
 import { readFileAsText } from '@/utils/upload'
 import { beautifyJson } from '@/services/formatter'
@@ -16,87 +12,68 @@ import { validateJson } from '@/services/validator'
 import toast from 'react-hot-toast'
 
 function sanitizeFilename(name: string): string {
-  let trimmed = name.trim().slice(0, 100)
-  if (!trimmed) return ''
-  if (!trimmed.endsWith('.json')) trimmed += '.json'
-  return trimmed
+  let t = name.trim().slice(0, 100)
+  if (!t) return ''
+  if (!t.endsWith('.json')) t += '.json'
+  return t
 }
 
-function FileNameEditor({ fileName, onRename }: { fileName: string; onRename: (name: string) => void }) {
+function FileNameEditor({ fileName, onRename }: { fileName: string; onRename: (n: string) => void }) {
   const [editing, setEditing] = useState(false)
   const [value, setValue] = useState('')
   const inputRef = useRef<HTMLInputElement>(null)
 
-  const startEditing = useCallback(() => {
-    setValue(fileName)
-    setEditing(true)
-  }, [fileName])
+  const start = useCallback(() => { setValue(fileName); setEditing(true) }, [fileName])
 
   useEffect(() => {
     if (!editing) return
     const el = inputRef.current
     if (!el) return
     el.focus()
-    const dotIndex = fileName.lastIndexOf('.json')
-    if (dotIndex > 0) el.setSelectionRange(0, dotIndex)
-    else el.select()
+    const d = fileName.lastIndexOf('.json')
+    if (d > 0) el.setSelectionRange(0, d); else el.select()
   }, [editing, fileName])
 
   useEffect(() => {
     if (editing) return
-    const handler = () => startEditing()
-    window.addEventListener('editor:rename', handler)
-    return () => window.removeEventListener('editor:rename', handler)
-  }, [editing, startEditing])
+    const h = () => start()
+    window.addEventListener('editor:rename', h)
+    return () => window.removeEventListener('editor:rename', h)
+  }, [editing, start])
 
   const commit = useCallback(() => {
-    const sanitized = sanitizeFilename(value)
-    if (sanitized && sanitized !== fileName) onRename(sanitized)
+    const s = sanitizeFilename(value)
+    if (s && s !== fileName) onRename(s)
     setEditing(false)
   }, [value, fileName, onRename])
 
   if (editing) {
     return (
-      <div className="flex items-center min-w-0">
-        <input
-          ref={inputRef}
-          type="text"
-          value={value}
-          onChange={(e) => setValue(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') commit()
-            if (e.key === 'Escape') setEditing(false)
-            e.stopPropagation()
-          }}
-          onBlur={commit}
-          className="h-7 rounded-md border border-border-strong bg-surface-elevated text-text text-[13px] px-2 outline-none focus:border-primary min-w-[120px] max-w-[300px]"
-        />
-      </div>
+      <input
+        ref={inputRef}
+        type="text"
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
+        onKeyDown={(e) => { if (e.key === 'Enter') commit(); if (e.key === 'Escape') setEditing(false); e.stopPropagation() }}
+        onBlur={commit}
+        className="h-6 border border-primary/50 bg-surface text-text text-[12px] px-2 outline-none min-w-[100px] max-w-[240px]"
+      />
     )
   }
 
   return (
-    <button
-      className="group flex items-center gap-1.5 min-w-0 cursor-pointer rounded-md px-2 py-1 hover:bg-surface-hover transition-colors"
-      onClick={startEditing}
-      title="Click to rename (F2)"
-    >
-      <span className="text-[13px] text-text-secondary truncate max-w-[260px]">{fileName || 'untitled.json'}</span>
-      <Pencil size={12} className="shrink-0 text-transparent group-hover:text-text-muted transition-colors" />
+    <button className="group flex items-center gap-1.5 min-w-0 px-2 py-1 hover:bg-surface-hover transition-colors" onClick={start} title="Rename (F2)">
+      <span className="text-[12px] text-text-secondary truncate max-w-[200px]">{fileName || 'untitled.json'}</span>
+      <Pencil size={10} className="shrink-0 text-transparent group-hover:text-text-muted transition-colors" />
     </button>
   )
 }
 
 export function TopBar() {
-  const {
-    fileName, content, setContent, pushHistory, addConsoleEntry,
-    setFileName, setStatistics, setValidationErrors, renameFile,
-  } = useEditorStore()
+  const { fileName, content, setContent, pushHistory, addConsoleEntry, setFileName, setStatistics, setValidationErrors, renameFile } = useEditorStore()
   const { theme, setTheme } = useTheme()
   const { autoFormat, tabSize, indentStyle } = useSettingsStore()
-  const run = useCallback(() => {
-    window.dispatchEvent(new CustomEvent('editor:run'))
-  }, [])
+  const run = useCallback(() => { window.dispatchEvent(new CustomEvent('editor:run')) }, [])
   const isRunning = useEditorStore((s) => s.isRunning)
   const navigate = useNavigate()
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -107,103 +84,102 @@ export function TopBar() {
     const file = e.target.files?.[0]
     if (!file) return
     try {
-      const rawText = await readFileAsText(file)
-      let text = rawText
-      if (autoFormat) {
-        const indent = indentStyle === 'tab' ? 'tab' as const : tabSize as 2 | 4 | 8
-        text = beautifyJson(rawText, indent)
-      }
-      setContent(text)
-      setFileName(file.name)
-      setStatistics(computeStatistics(text))
-      const result = validateJson(text)
-      setValidationErrors(result.errors)
+      const raw = await readFileAsText(file)
+      let text = raw
+      if (autoFormat) { const indent = indentStyle === 'tab' ? 'tab' as const : tabSize as 2 | 4 | 8; text = beautifyJson(raw, indent) }
+      setContent(text); setFileName(file.name); setStatistics(computeStatistics(text))
+      const r = validateJson(text); setValidationErrors(r.errors)
       pushHistory({ id: generateId(), content: text, timestamp: Date.now(), label: `Opened ${file.name}` })
       addConsoleEntry({ id: generateId(), type: 'info', message: `Opened ${file.name}`, timestamp: Date.now() })
       toast.success(`Loaded ${file.name}`)
-    } catch {
-      toast.error('Failed to read file')
-    }
+    } catch { toast.error('Failed to read file') }
     e.target.value = ''
   }
 
   const handleSave = useCallback(() => {
     if (!content.trim()) { toast.error('Nothing to save'); return }
-    downloadJson(content, fileName || 'untitled.json')
-    toast.success('Downloaded')
+    downloadJson(content, fileName || 'untitled.json'); toast.success('Downloaded')
   }, [content, fileName])
 
   useEffect(() => {
-    const handler = () => handleSave()
-    window.addEventListener('editor:save', handler)
-    return () => window.removeEventListener('editor:save', handler)
+    const h = () => handleSave()
+    window.addEventListener('editor:save', h)
+    return () => window.removeEventListener('editor:save', h)
   }, [handleSave])
 
   const handleNew = () => {
-    setContent('{\n  \n}')
-    setFileName('untitled.json')
-    setStatistics(null)
-    setValidationErrors([])
+    setContent('{\n  \n}'); setFileName('untitled.json'); setStatistics(null); setValidationErrors([])
     pushHistory({ id: generateId(), content: '{\n  \n}', timestamp: Date.now(), label: 'New document' })
-    addConsoleEntry({ id: generateId(), type: 'info', message: 'New document created', timestamp: Date.now() })
+    addConsoleEntry({ id: generateId(), type: 'info', message: 'New document', timestamp: Date.now() })
   }
 
-  const handleSearch = () => window.dispatchEvent(new CustomEvent('editor:search'))
-  const cycleTheme = () => setTheme(theme === 'dark' ? 'light' : 'dark')
-  const ThemeIcon = theme === 'dark' ? Sun : Moon
-
-  const handleRename = useCallback((newName: string) => {
-    renameFile(fileName || 'untitled.json', newName)
-    addConsoleEntry({ id: generateId(), type: 'info', message: `Renamed to ${newName}`, timestamp: Date.now() })
+  const handleRename = useCallback((n: string) => {
+    renameFile(fileName || 'untitled.json', n)
+    addConsoleEntry({ id: generateId(), type: 'info', message: `Renamed to ${n}`, timestamp: Date.now() })
   }, [fileName, renameFile, addConsoleEntry])
 
+  const cycleTheme = useCallback(() => {
+    if (theme === 'dark') setTheme('light')
+    else setTheme('dark')
+  }, [theme, setTheme])
+
   return (
-    <header className="h-[58px] bg-topbar-bg border-b border-border flex items-center justify-between px-4 shrink-0 select-none">
+    <header className="h-[52px] bg-topbar-bg border-b border-border flex items-center justify-between px-4 shrink-0 select-none">
       <div className="flex items-center gap-3 min-w-0">
-        <div className="flex items-center gap-2.5 shrink-0">
-          <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-primary">
+        <div className="flex items-center gap-2 shrink-0">
+          <div className="w-7 h-7 bg-primary/15 flex items-center justify-center">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-primary">
               <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3" />
             </svg>
           </div>
-          <span className="text-[14px] font-semibold text-text tracking-tight">JSON Corrector</span>
+          <span className="text-[14px] font-bold text-text tracking-tight">JSON Corrector</span>
         </div>
-        <div className="w-px h-4 bg-border" />
+        <div className="w-px h-5 bg-border" />
         <FileNameEditor fileName={fileName || 'untitled.json'} onRename={handleRename} />
       </div>
-
-      <div className="flex items-center gap-2 shrink-0">
+      <div className="flex items-center gap-1 shrink-0">
         <input ref={fileInputRef} type="file" accept=".json" onChange={handleFileChange} className="hidden" />
-        <BarBtn icon={FolderOpen} onClick={handleOpen} label="Open File" />
-        <BarBtn icon={FilePlus} onClick={handleNew} label="New File" />
+        <TopBtn icon={FolderOpen} onClick={handleOpen} label="Open File" showLabel />
+        <TopBtn icon={FilePlus} onClick={handleNew} label="New File" showLabel />
+        <div className="w-px h-5 bg-border mx-1.5" />
         <button
           onClick={run}
           disabled={isRunning}
-          className="h-[32px] px-4 rounded-lg bg-primary text-white text-[13px] font-medium hover:brightness-110 transition-all disabled:opacity-50 disabled:cursor-wait inline-flex items-center gap-2"
+          className="h-8 px-4 bg-primary text-white text-[12px] font-semibold hover:bg-primary-hover transition-colors disabled:opacity-40 inline-flex items-center gap-1.5 shadow-sm shadow-primary/25"
           title="Run (Ctrl+Enter)"
         >
-          {isRunning ? <Loader2 size={15} className="animate-spin" /> : <Play size={15} fill="currentColor" />}
-          <span>Run</span>
+          {isRunning ? <Loader2 size={13} className="animate-spin" /> : <Play size={12} fill="currentColor" />}
+          Run
         </button>
-        <div className="w-px h-4 bg-border mx-1" />
-        <BarBtn icon={Search} onClick={handleSearch} label="Search (Ctrl+F)" />
-        <BarBtn icon={Save} onClick={handleSave} label="Save (Ctrl+S)" />
-        <BarBtn icon={Settings} onClick={() => navigate('/settings')} label="Settings" />
-        <BarBtn icon={ThemeIcon} onClick={cycleTheme} label={`Theme: ${theme}`} />
+        <div className="w-px h-5 bg-border mx-1.5" />
+        <TopBtn icon={Search} onClick={() => window.dispatchEvent(new CustomEvent('editor:search'))} label="Search" shortcut="Ctrl+F" />
+        <TopBtn icon={Save} onClick={handleSave} label="Save" shortcut="Ctrl+S" />
+        <TopBtn icon={Settings} onClick={() => navigate('/settings')} label="Settings" />
+        <div className="w-px h-5 bg-border mx-1.5" />
+        <button
+          onClick={cycleTheme}
+          className="w-8 h-8 flex items-center justify-center text-text-secondary hover:text-text hover:bg-surface-hover transition-colors"
+          title={`Theme: ${theme === 'dark' ? 'Dark' : 'Light'}`}
+          aria-label="Toggle theme"
+        >
+          {theme === 'dark' ? <Sun size={15} strokeWidth={1.75} /> : <Moon size={15} strokeWidth={1.75} />}
+        </button>
       </div>
     </header>
   )
 }
 
-function BarBtn({ icon: Icon, onClick, label }: { icon: typeof FolderOpen; onClick: () => void; label: string }) {
+function TopBtn({ icon: Icon, onClick, label, showLabel, shortcut }: { icon: typeof FolderOpen; onClick: () => void; label: string; showLabel?: boolean; shortcut?: string }) {
   return (
     <button
       onClick={onClick}
-      className="w-8 h-8 flex items-center justify-center rounded-lg text-text-secondary hover:text-text hover:bg-surface-hover transition-colors"
-      title={label}
+      className="h-8 px-2.5 flex items-center gap-1.5 text-text-secondary hover:text-text hover:bg-surface-hover transition-colors"
+      title={shortcut ? `${label} (${shortcut})` : label}
       aria-label={label}
     >
-      <Icon size={17} />
+      <Icon size={15} strokeWidth={1.75} />
+      {showLabel && <span className="text-[12px] font-medium">{label}</span>}
+      {shortcut && <span className="text-[10px] text-text-muted ml-0.5">{shortcut}</span>}
     </button>
   )
 }

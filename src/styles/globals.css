@@ -9,10 +9,10 @@
 
   --color-bg: var(--background);
   --color-surface: var(--surface);
-  --color-surface-elevated: var(--surface-elevated);
+  --color-panel: var(--panel);
+  --color-elevated: var(--elevated);
   --color-surface-hover: var(--surface-hover);
   --color-border: var(--border);
-  --color-border-strong: var(--border-strong);
 
   --color-text: var(--foreground);
   --color-text-secondary: var(--muted);
@@ -21,7 +21,6 @@
   --color-editor-bg: var(--editor-bg);
   --color-sidebar-bg: var(--sidebar-bg);
   --color-topbar-bg: var(--topbar-bg);
-  --color-panel-bg: var(--panel-bg);
   --color-statusbar-bg: var(--statusbar-bg);
 
   --color-diff-added-bg: var(--diff-added-bg);
@@ -32,13 +31,13 @@
 
 :root,
 [data-theme="dark"] {
-  --background: #0F172A;
+  --background: #0B1220;
   --surface: #111827;
-  --surface-elevated: #1E293B;
+  --panel: #172033;
+  --elevated: #1E293B;
   --surface-hover: rgba(255, 255, 255, 0.04);
-  --border: #1E293B;
-  --border-strong: #263449;
-  --foreground: #F8FAFC;
+  --border: #253149;
+  --foreground: #E5E7EB;
   --muted: #94A3B8;
   --text-tertiary: #64748B;
 
@@ -49,24 +48,23 @@
   --danger: #EF4444;
 
   --sidebar-bg: #111827;
-  --topbar-bg: #111827;
-  --editor-bg: #0B1120;
-  --panel-bg: #0F172A;
-  --statusbar-bg: #111827;
+  --topbar-bg: #0F172A;
+  --editor-bg: #0B1220;
+  --statusbar-bg: #0F172A;
 
   --diff-added-bg: rgba(34, 197, 94, 0.1);
-  --diff-added-text: #4ADE80;
+  --diff-added-text: #22C55E;
   --diff-removed-bg: rgba(239, 68, 68, 0.1);
-  --diff-removed-text: #F87171;
+  --diff-removed-text: #EF4444;
 }
 
 [data-theme="light"] {
   --background: #F8FAFC;
   --surface: #FFFFFF;
-  --surface-elevated: #F1F5F9;
+  --panel: #F1F5F9;
+  --elevated: #FFFFFF;
   --surface-hover: rgba(0, 0, 0, 0.03);
-  --border: #E2E8F0;
-  --border-strong: #CBD5E1;
+  --border: #CBD5E1;
   --foreground: #0F172A;
   --muted: #64748B;
   --text-tertiary: #94A3B8;
@@ -80,7 +78,6 @@
   --sidebar-bg: #FFFFFF;
   --topbar-bg: #FFFFFF;
   --editor-bg: #F8FAFC;
-  --panel-bg: #FFFFFF;
   --statusbar-bg: #F1F5F9;
 
   --diff-added-bg: rgba(22, 163, 74, 0.08);
@@ -103,7 +100,7 @@ html, body, #root {
 
 body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  font-size: 14px;
+  font-size: 13px;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -114,9 +111,9 @@ body {
 .theme-transition,
 .theme-transition *::before,
 .theme-transition *::after {
-  transition: background-color 120ms ease,
-              color 120ms ease,
-              border-color 120ms ease !important;
+  transition: background-color 150ms ease,
+              color 150ms ease,
+              border-color 150ms ease !important;
 }
 
 ::-webkit-scrollbar {
@@ -129,8 +126,7 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--border-strong);
-  border-radius: 3px;
+  background: var(--border);
 }
 
 ::-webkit-scrollbar-thumb:hover {
@@ -139,4 +135,55 @@ body {
 
 ::selection {
   background: rgba(59, 130, 246, 0.3);
+}
+
+*:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 1px;
+}
+
+button {
+  cursor: pointer;
+  border: none;
+  background: none;
+  font-family: inherit;
+}
+
+input, select, textarea {
+  font-family: inherit;
+}
+
+/* Resize handle styles */
+.resize-handle-horizontal {
+  cursor: col-resize;
+  position: relative;
+}
+
+.resize-handle-horizontal::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -2px;
+  right: -2px;
+}
+
+.resize-handle-vertical {
+  cursor: row-resize;
+  position: relative;
+}
+
+.resize-handle-vertical::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: -2px;
+  bottom: -2px;
+}
+
+.resize-handle-horizontal:hover,
+.resize-handle-vertical:hover {
+  background: var(--primary);
+  opacity: 0.3;
 }

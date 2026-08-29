@@ -32,7 +32,7 @@ class ErrorBoundary extends Component<{ children: ReactNode }, { hasError: boole
             <p className="text-text-secondary mb-4">An unexpected error occurred. Please reload the page.</p>
             <button
               onClick={() => { this.setState({ hasError: false }); window.location.reload() }}
-              className="rounded-xl bg-primary text-white px-6 py-2 text-sm font-medium"
+              className="bg-primary text-white px-6 py-2 text-sm font-medium"
             >
               Reload
             </button>

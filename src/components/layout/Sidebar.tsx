@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import { LayoutDashboard, FileJson, FileCheck, Wrench, Sparkles, Shrink, FileSearch, GitCompare, Clock, Settings, FolderOpen, ChevronDown, Sun, Moon, Trash2 } from 'lucide-react'
 import { cn, generateId } from '@/utils/helpers'
 import { useEditorStore } from '@/store/editorStore'
+import { useTrashStore } from '@/store/trashStore'
 import { useTheme } from '@/hooks/useTheme'
 import { computeStatistics } from '@/utils/statistics'
 import { isValidJson } from '@/services/formatter'
@@ -18,6 +19,7 @@ const navItems = [
   { icon: FileSearch, label: 'Schema', path: '/schema' },
   { icon: GitCompare, label: 'Diff Viewer', path: '/diff' },
   { icon: Clock, label: 'History', path: '/history' },
+  { icon: Trash2, label: 'Trash', path: '/trash' },
   { icon: Settings, label: 'Settings', path: '/settings' },
 ]
 
@@ -65,6 +67,7 @@ export function Sidebar() {
   const location = useLocation()
   const navigate = useNavigate()
   const { setContent, setFileName, setStatistics, setValidationErrors, addConsoleEntry, fileName, content } = useEditorStore()
+  const { moveToTrash } = useTrashStore()
   const { theme, setTheme } = useTheme()
   const [filesExpanded, setFilesExpanded] = useState(true)
   const [recentFiles, setRecentFiles] = useState<RecentFile[]>(loadRecentFiles)
@@ -106,14 +109,20 @@ export function Sidebar() {
     navigate('/')
   }, [setFileName, setContent, setStatistics, setValidationErrors, addConsoleEntry, navigate])
 
-  const handleRemoveFile = useCallback((fileId: string) => {
+  const handleRemoveFile = useCallback((file: RecentFile) => {
+    moveToTrash({
+      id: file.id,
+      name: file.name,
+      content: file.content,
+      size: file.size,
+    })
     setRecentFiles(prev => {
-      const updated = prev.filter(f => f.id !== fileId)
+      const updated = prev.filter(f => f.id !== file.id)
       saveRecentFiles(updated)
       return updated
     })
     setContextMenu(null)
-  }, [])
+  }, [moveToTrash])
 
   const handleContextMenu = useCallback((e: React.MouseEvent, file: RecentFile) => {
     e.preventDefault()
@@ -218,10 +227,10 @@ export function Sidebar() {
             <FolderOpen size={12} /> Open
           </button>
           <button
-            onClick={() => handleRemoveFile(contextMenu.file.id)}
+            onClick={() => handleRemoveFile(contextMenu.file)}
             className="flex items-center gap-2 w-full px-3 py-1.5 text-[11px] text-danger hover:bg-surface-hover transition-colors"
           >
-            <Trash2 size={12} /> Remove
+            <Trash2 size={12} /> Move to Trash
           </button>
         </div>
       )}

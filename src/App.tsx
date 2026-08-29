@@ -11,6 +11,7 @@ import MinifyPage from '@/pages/Minify'
 import SchemaPage from '@/pages/Schema'
 import DiffPage from '@/pages/Diff'
 import HistoryPage from '@/pages/History'
+import TrashPage from '@/pages/Trash'
 import SettingsPage from '@/pages/Settings'
 import NotFound from '@/pages/NotFound'
 import NotWorking from '@/pages/NotWorking'
@@ -71,6 +72,7 @@ function AppContent() {
           <Route path="/schema" element={<SchemaPage />} />
           <Route path="/diff" element={<DiffPage />} />
           <Route path="/history" element={<HistoryPage />} />
+          <Route path="/trash" element={<TrashPage />} />
           <Route path="/settings" element={<SettingsPage />} />
           <Route path="/oops" element={<NotWorking />} />
           <Route path="*" element={<NotFound />} />

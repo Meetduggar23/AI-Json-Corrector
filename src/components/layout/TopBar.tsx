@@ -146,15 +146,14 @@ export function TopBar() {
         <button
           onClick={run}
           disabled={isRunning}
-          className="h-8 px-4 bg-primary text-white text-[12px] font-semibold hover:bg-primary-hover transition-colors disabled:opacity-40 inline-flex items-center gap-1.5 shadow-sm shadow-primary/25"
+          className="h-8 px-4 bg-primary text-white text-[12px] font-semibold hover:bg-primary-hover transition-colors disabled:opacity-40 inline-flex items-center shadow-sm shadow-primary/25"
           title="Run (Ctrl+Enter)"
         >
-          {isRunning ? <Loader2 size={13} className="animate-spin" /> : <Play size={12} fill="currentColor" />}
-          Run
+          {isRunning ? <Loader2 size={13} className="animate-spin" /> : 'Run'}
         </button>
         <div className="w-px h-5 bg-border mx-1.5" />
-        <TopBtn icon={Search} onClick={triggerSearch} label="Search" shortcut="Ctrl+F" />
-        <TopBtn icon={Save} onClick={handleSave} label="Save" shortcut="Ctrl+S" />
+        <TopBtn icon={Search} onClick={triggerSearch} label="Search" />
+        <TopBtn icon={Save} onClick={handleSave} label="Save" />
         <TopBtn icon={Settings} onClick={() => navigate('/settings')} label="Settings" />
         <div className="w-px h-5 bg-border mx-1.5" />
         <button

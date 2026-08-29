@@ -41,3 +41,10 @@ export function revealPosition(line: number, column: number) {
   editor.setPosition({ lineNumber: line, column })
   editor.focus()
 }
+
+export function triggerSearch() {
+  const { editor } = getEditorApi()
+  if (!editor) return
+  editor.focus()
+  editor.trigger('searchButton', 'actions.find', null)
+}

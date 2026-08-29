@@ -10,6 +10,7 @@ import { validateJson } from '@/services/validator'
 import { computeStatistics } from '@/utils/statistics'
 import { generateId } from '@/utils/helpers'
 import { downloadJson } from '@/utils/download'
+import { triggerSearch } from '@/utils/editorApi'
 import toast from 'react-hot-toast'
 
 export function EditorToolbar() {
@@ -70,7 +71,7 @@ export function EditorToolbar() {
       <EditorBtn icon={Wrench} onClick={handleRepair} label="Repair" />
       <EditorBtn icon={Shrink} onClick={handleMinify} label="Minify" />
       <span className="w-px h-3.5 bg-border mx-1" />
-      <EditorBtn icon={Search} onClick={() => window.dispatchEvent(new CustomEvent('editor:search'))} label="Search" />
+      <EditorBtn icon={Search} onClick={triggerSearch} label="Search" />
       <EditorBtn icon={GitCompare} onClick={() => window.location.href = '/diff'} label="Diff" />
       <span className="w-px h-3.5 bg-border mx-1" />
       <EditorBtn icon={Copy} onClick={handleCopy} label="Copy" />

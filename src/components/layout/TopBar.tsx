@@ -9,6 +9,7 @@ import { beautifyJson } from '@/services/formatter'
 import { generateId } from '@/utils/helpers'
 import { computeStatistics } from '@/utils/statistics'
 import { validateJson } from '@/services/validator'
+import { triggerSearch } from '@/utils/editorApi'
 import toast from 'react-hot-toast'
 
 function sanitizeFilename(name: string): string {
@@ -152,7 +153,7 @@ export function TopBar() {
           Run
         </button>
         <div className="w-px h-5 bg-border mx-1.5" />
-        <TopBtn icon={Search} onClick={() => window.dispatchEvent(new CustomEvent('editor:search'))} label="Search" shortcut="Ctrl+F" />
+        <TopBtn icon={Search} onClick={triggerSearch} label="Search" shortcut="Ctrl+F" />
         <TopBtn icon={Save} onClick={handleSave} label="Save" shortcut="Ctrl+S" />
         <TopBtn icon={Settings} onClick={() => navigate('/settings')} label="Settings" />
         <div className="w-px h-5 bg-border mx-1.5" />

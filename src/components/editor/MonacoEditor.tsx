@@ -61,18 +61,6 @@ export function MonacoEditor() {
     setEditorReady(true)
   }, [])
 
-  useEffect(() => {
-    const handler = () => {
-      const ed = editorRef.current
-      if (ed) {
-        const findAction = ed.getAction('actions.find')
-        if (findAction) findAction.run()
-      }
-    }
-    window.addEventListener('editor:search', handler)
-    return () => window.removeEventListener('editor:search', handler)
-  }, [])
-
   const handleChange = useCallback((value: string | undefined) => {
     setContent(value ?? '')
   }, [setContent])

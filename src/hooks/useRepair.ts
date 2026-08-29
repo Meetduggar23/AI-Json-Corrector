@@ -7,15 +7,14 @@ import { trackActivity } from '@/utils/activity'
 import type { RepairResult } from '@/types/json'
 
 export function useRepair() {
-  const { setContent, setOriginalContent, setStatistics, addConsoleEntry, pushHistory, content } = useEditorStore()
-
   const repair = useCallback((value: string, useAutoRepair = false): RepairResult => {
     const result = useAutoRepair ? autoRepair(value) : repairJson(value)
+    const store = useEditorStore.getState()
 
     if (result.success && result.corrected !== value) {
-      setContent(result.corrected)
-      setOriginalContent(value)
-      pushHistory({
+      store.setContent(result.corrected)
+      store.setOriginalContent(value)
+      store.pushHistory({
         id: generateId(),
         content: result.corrected,
         timestamp: Date.now(),
@@ -23,10 +22,10 @@ export function useRepair() {
       })
 
       const stats = computeStatistics(result.corrected)
-      if (stats) setStatistics(stats)
+      if (stats) store.setStatistics(stats)
 
       trackActivity({ type: 'repair', label: 'Repaired JSON', path: '/repair' })
-      addConsoleEntry({
+      store.addConsoleEntry({
         id: generateId(),
         type: 'success',
         message: `✓ JSON repaired successfully (${result.repairs.length} fixes)`,
@@ -34,14 +33,14 @@ export function useRepair() {
         details: result.repairs.map(r => `• ${r.description}`).join('\n'),
       })
     } else if (result.success) {
-      addConsoleEntry({
+      store.addConsoleEntry({
         id: generateId(),
         type: 'info',
         message: '✓ JSON is already valid - no repair needed',
         timestamp: Date.now(),
       })
     } else {
-      addConsoleEntry({
+      store.addConsoleEntry({
         id: generateId(),
         type: 'error',
         message: '✗ Repair failed - could not fix JSON',
@@ -50,24 +49,26 @@ export function useRepair() {
     }
 
     return result
-  }, [setContent, setOriginalContent, setStatistics, addConsoleEntry, pushHistory])
+  }, [])
 
   const applyQuickFix = useCallback((fix: string) => {
-    let result = content
+    const store = useEditorStore.getState()
+    const currentContent = store.content
+    let result = currentContent
     switch (fix) {
-      case 'comma': result = quickFixInsertComma(content); break
-      case 'trailing': result = quickFixRemoveTrailingComma(content); break
-      case 'quotes': result = quickFixAddQuotes(content); break
-      case 'invalid': result = quickFixRemoveInvalid(content); break
+      case 'comma': result = quickFixInsertComma(currentContent); break
+      case 'trailing': result = quickFixRemoveTrailingComma(currentContent); break
+      case 'quotes': result = quickFixAddQuotes(currentContent); break
+      case 'invalid': result = quickFixRemoveInvalid(currentContent); break
     }
-    setContent(result)
-    pushHistory({
+    store.setContent(result)
+    store.pushHistory({
       id: generateId(),
       content: result,
       timestamp: Date.now(),
       label: `Quick fix: ${fix}`,
     })
-  }, [content, setContent, pushHistory])
+  }, [])
 
   return { repair, applyQuickFix }
 }

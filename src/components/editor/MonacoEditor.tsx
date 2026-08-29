@@ -2,7 +2,6 @@ import { useCallback, useEffect, useState, useRef } from 'react'
 import Editor, { type OnMount } from '@monaco-editor/react'
 import { useEditorStore } from '@/store/editorStore'
 import { useSettingsStore } from '@/store/editorStore'
-import { useTheme } from '@/hooks/useTheme'
 import { setEditorApi } from '@/utils/editorApi'
 import type { editor } from 'monaco-editor'
 
@@ -10,8 +9,7 @@ export function MonacoEditor() {
   const content = useEditorStore((s) => s.content)
   const setContent = useEditorStore((s) => s.setContent)
   const validationErrors = useEditorStore((s) => s.validationErrors)
-  const { fontSize, wordWrap, tabSize, minimap, lineNumbers } = useSettingsStore()
-  const { resolvedTheme } = useTheme()
+  const { fontSize, wordWrap, tabSize, minimap, lineNumbers, theme: editorTheme } = useSettingsStore()
   const [mounted, setMounted] = useState(false)
   const [editorReady, setEditorReady] = useState(false)
   const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null)
@@ -64,7 +62,7 @@ export function MonacoEditor() {
     }
   }, [validationErrors, editorReady])
 
-  const monacoTheme = resolvedTheme === 'dark' ? 'vs-dark' : 'vs'
+  const monacoTheme = editorTheme
 
   if (!mounted) {
     return (

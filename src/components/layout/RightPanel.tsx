@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { ChevronDown, ChevronRight, FolderOpen, Wrench, BookOpen, History, FileText, Hash, Type, Braces, GitCompare, Sparkles, Shrink, FileCheck, FileSearch, Settings, Layers, BarChart3, Terminal } from 'lucide-react'
 import { useEditorStore, useSettingsStore } from '@/store/editorStore'
-import { cn } from '@/utils/helpers'
+import { cn, formatBytes } from '@/utils/helpers'
 import { minifyJson, beautifyJson } from '@/services/formatter'
 import { diffArrays } from 'diff'
 import type { LucideIcon } from 'lucide-react'
@@ -89,7 +89,7 @@ export function RightPanel() {
   const firstError = validationErrors[0]
 
   return (
-    <div className="h-full bg-bg-primary overflow-y-auto flex flex-col" style={{ width: '320px', padding: '18px', gap: '16px' }}>
+    <div className="h-full bg-bg-primary overflow-y-auto flex flex-col w-full" style={{ padding: '18px', gap: '16px' }}>
       <Section title="Workspace" open={workspaceOpen} onToggle={setWorkspaceOpen}>
         <Row icon={FolderOpen} label="Open Files" value={String(hasContent ? 1 : 0)} />
         <Row icon={Wrench} label="Recent Repairs" value={String(recentRepairs)} />
@@ -221,17 +221,17 @@ function renderContext(path: string, p: ContextProps) {
       return (
         <>
           <Row icon={Sparkles} label="Indentation" value={`Spaces: ${p.tabSize}`} />
-          <Row icon={Hash} label="Current Size" value={formatSize(p.originalSize)} />
-          <Row icon={Hash} label="Formatted Size" value={formatSize(p.formattedSize)} />
+          <Row icon={Hash} label="Current Size" value={formatBytes(p.originalSize)} />
+          <Row icon={Hash} label="Formatted Size" value={formatBytes(p.formattedSize)} />
         </>
       )
 
     case '/minify':
       return (
         <>
-          <Row icon={Shrink} label="Original Size" value={formatSize(p.originalSize)} />
-          <Row icon={Shrink} label="Compressed Size" value={formatSize(p.compressedSize)} />
-          <Row icon={Shrink} label="Saved" value={formatSize(p.savedBytes)} />
+          <Row icon={Shrink} label="Original Size" value={formatBytes(p.originalSize)} />
+          <Row icon={Shrink} label="Compressed Size" value={formatBytes(p.compressedSize)} />
+          <Row icon={Shrink} label="Saved" value={formatBytes(p.savedBytes)} />
         </>
       )
 
@@ -278,11 +278,7 @@ function renderContext(path: string, p: ContextProps) {
   }
 }
 
-function formatSize(bytes: number): string {
-  if (bytes < 1024) return `${bytes} B`
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
-}
+
 
 const shortcutItems = [
   { label: 'Run Validation', key: 'Ctrl+Enter' },

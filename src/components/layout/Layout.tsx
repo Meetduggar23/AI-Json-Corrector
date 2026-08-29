@@ -14,6 +14,8 @@ export function Layout() {
   const isDraggingRight = useRef(false)
   const runRef = useRef(run)
   runRef.current = run
+  const isSidebarOpenRef = useRef(isSidebarOpen)
+  isSidebarOpenRef.current = isSidebarOpen
 
   const handleRightMouseDown = useCallback((e: React.MouseEvent) => {
     e.preventDefault()
@@ -24,7 +26,8 @@ export function Layout() {
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
       if (isDraggingRight.current) {
-        setRightWidth(Math.max(280, Math.min(420, window.innerWidth - e.clientX - 240)))
+        const sidebarWidth = isSidebarOpenRef.current ? 240 : 0
+        setRightWidth(Math.max(280, Math.min(420, window.innerWidth - e.clientX - sidebarWidth)))
       }
     }
     const handleMouseUp = () => {
@@ -63,7 +66,12 @@ export function Layout() {
 
   useEffect(() => {
     document.addEventListener('keydown', handleKeyDown)
-    return () => document.removeEventListener('keydown', handleKeyDown)
+    const handleRunEvent = () => runRef.current()
+    window.addEventListener('editor:run', handleRunEvent)
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown)
+      window.removeEventListener('editor:run', handleRunEvent)
+    }
   }, [handleKeyDown])
 
   return (

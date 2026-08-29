@@ -5,7 +5,6 @@ import {
 } from 'lucide-react'
 import { useEditorStore } from '@/store/editorStore'
 import { useTheme } from '@/hooks/useTheme'
-import { useRun } from '@/hooks/useRun'
 import { downloadJson } from '@/utils/download'
 import { readFileAsText } from '@/utils/upload'
 import { generateId } from '@/utils/helpers'
@@ -115,7 +114,9 @@ export function TopToolbar() {
     setFileName, setStatistics, setValidationErrors, renameFile,
   } = useEditorStore()
   const { theme, resolvedTheme, setTheme } = useTheme()
-  const { run } = useRun()
+  const run = useCallback(() => {
+    window.dispatchEvent(new CustomEvent('editor:run'))
+  }, [])
   const isRunning = useEditorStore((s) => s.isRunning)
   const navigate = useNavigate()
   const fileInputRef = useRef<HTMLInputElement>(null)

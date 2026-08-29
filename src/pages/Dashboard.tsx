@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom'
 import {
   FileCheck, Wrench, Sparkles, Shrink, FileSearch, GitCompare,
   ArrowRight, FolderOpen, MoreHorizontal, Folder,
-  XCircle, CheckCircle,
 } from 'lucide-react'
 import { useEditorStore } from '@/store/editorStore'
 import { cn, formatBytes, generateId } from '@/utils/helpers'
@@ -16,7 +15,6 @@ import { STORAGE_KEY_RECENT_FILES } from '@/constants'
 interface RecentFile {
   id: string
   name: string
-  content: string
   status: 'valid' | 'invalid'
   size: number
   timestamp: number
@@ -47,34 +45,24 @@ function saveRecentFiles(files: RecentFile[]): void {
   } catch { }
 }
 
-function trackFileOpen(name: string, content: string, status: 'valid' | 'invalid', size: number): void {
+function trackFileOpen(name: string, status: 'valid' | 'invalid', size: number): void {
   try {
     const files = loadRecentFiles()
     const existing = files.findIndex((f) => f.name === name)
     if (existing >= 0) files.splice(existing, 1)
-    files.unshift({ id: generateId(), name, content, status, size, timestamp: Date.now() })
+    files.unshift({ id: generateId(), name, status, size, timestamp: Date.now() })
     saveRecentFiles(files)
   } catch { }
 }
 
-const bottomTabs = [
-  { id: 'problems' as const, label: 'Problems' },
-  { id: 'output' as const, label: 'Output' },
-  { id: 'logs' as const, label: 'Logs' },
-  { id: 'history' as const, label: 'History' },
-  { id: 'schema' as const, label: 'Schema' },
-]
-
 export function Dashboard() {
   const {
-    validationErrors, consoleEntries, history,
+    validationErrors,
     setContent, setFileName, setStatistics, setValidationErrors,
     addConsoleEntry,
   } = useEditorStore()
   const navigate = useNavigate()
   const fileInputRef = useRef<HTMLInputElement>(null)
-
-  const [activeBottomTab, setActiveBottomTab] = useState<'problems' | 'output' | 'logs' | 'history' | 'schema'>('problems')
 
   const recentFiles = useMemo(() => loadRecentFiles(), [])
 
@@ -92,7 +80,7 @@ export function Dashboard() {
       setStatistics(computeStatistics(text))
       const valid = isValidJson(text)
       setValidationErrors(valid ? [] : [{ line: 1, column: 1, message: 'Invalid JSON', type: 'syntax' as const }])
-      trackFileOpen(file.name, text, valid ? 'valid' : 'invalid', text.length)
+      trackFileOpen(file.name, valid ? 'valid' : 'invalid', text.length)
       trackActivity({ type: 'open', label: `Opened ${file.name}`, path: '/' })
       addConsoleEntry({ id: generateId(), type: 'info', message: `Opened ${file.name}`, timestamp: Date.now() })
     } catch {
@@ -103,21 +91,22 @@ export function Dashboard() {
 
   const handleAction = useCallback((action: typeof ACTIONS[number]) => {
     const t = action.label.toLowerCase()
-    const type = t.includes('validate') ? 'validate' : t.includes('repair') ? 'repair' : t.includes('beautify') ? 'beautify' : t.includes('minify') ? 'minify' : t.includes('schema') ? 'schema' : 'diff'
-    trackActivity({ type: type as ActivityEntry['type'], label: action.label, path: action.path })
+    const type: ActivityEntry['type'] = t.includes('validate') ? 'validate'
+      : t.includes('repair') ? 'repair'
+      : t.includes('beautify') ? 'beautify'
+      : t.includes('minify') ? 'minify'
+      : t.includes('schema') ? 'schema'
+      : 'diff'
+    trackActivity({ type, label: action.label, path: action.path })
     addConsoleEntry({ id: generateId(), type: 'info', message: `Navigated to ${action.label}`, timestamp: Date.now() })
     navigate(action.path)
   }, [navigate, addConsoleEntry])
 
   const handleOpenRecent = useCallback((file: RecentFile) => {
-    setContent(file.content)
     setFileName(file.name)
-    setStatistics(computeStatistics(file.content))
-    const valid = isValidJson(file.content)
-    setValidationErrors(valid ? [] : [{ line: 1, column: 1, message: 'Invalid JSON', type: 'syntax' as const }])
-    trackActivity({ type: 'open', label: `Opened ${file.name} from recents`, path: '/' })
-    addConsoleEntry({ id: generateId(), type: 'info', message: `Opened ${file.name}`, timestamp: Date.now() })
-  }, [setContent, setFileName, setStatistics, setValidationErrors, addConsoleEntry])
+    addConsoleEntry({ id: generateId(), type: 'info', message: `Navigate to Workspace to view ${file.name}`, timestamp: Date.now() })
+    navigate('/')
+  }, [setFileName, addConsoleEntry, navigate])
 
   return (
     <div className="h-full flex flex-col overflow-hidden">
@@ -127,7 +116,7 @@ export function Dashboard() {
         <div style={{ minWidth: '640px', maxWidth: '1280px' }}>
           <div style={{ marginBottom: '32px' }}>
             <h1 style={{ fontSize: '48px', fontWeight: 700, lineHeight: 1.1, letterSpacing: '-0.02em' }} className="text-text-primary">
-              Welcome back<span className="inline-block">{'\u{1F44B}'}</span>
+              Welcome back 👋
             </h1>
             <p style={{ fontSize: '15px', marginTop: '8px' }} className="text-text-secondary">
               Validate, repair and format your JSON files locally.
@@ -150,19 +139,11 @@ export function Dashboard() {
             {recentFiles.length === 0 ? (
               <EmptyState onOpen={handleOpenFile} />
             ) : (
-              <RecentFilesTable files={recentFiles} onOpenRecent={handleOpenRecent} onOpen={handleOpenFile} navigate={navigate} />
+              <RecentFilesTable files={recentFiles} onOpenRecent={handleOpenRecent} onOpen={handleOpenFile} />
             )}
           </section>
         </div>
       </div>
-
-      <BottomPanel
-        activeTab={activeBottomTab}
-        onTabChange={setActiveBottomTab}
-        validationErrors={validationErrors}
-        consoleEntries={consoleEntries}
-        history={history}
-      />
     </div>
   )
 }
@@ -208,11 +189,10 @@ function EmptyState({ onOpen }: { onOpen: () => void }) {
   )
 }
 
-function RecentFilesTable({ files, onOpenRecent, onOpen: _onOpen, navigate: nav }: {
+function RecentFilesTable({ files, onOpenRecent, onOpen: _onOpen }: {
   files: RecentFile[]
   onOpenRecent: (file: RecentFile) => void
   onOpen: () => void
-  navigate: (path: string) => void
 }) {
   return (
     <div className="rounded-xl bg-surface border border-border overflow-hidden">
@@ -276,138 +256,13 @@ function RecentFilesTable({ files, onOpenRecent, onOpen: _onOpen, navigate: nav 
       </table>
       <div className="border-t border-border flex items-center justify-center" style={{ padding: '12px' }}>
         <button
-          onClick={() => nav('/history')}
+          onClick={() => _onOpen()}
           className="inline-flex items-center gap-1.5 text-accent hover:text-accent-hover transition-colors"
           style={{ fontSize: '13px', fontWeight: 500 }}
         >
-          View All History
+          Open a File
           <ArrowRight size={14} />
         </button>
-      </div>
-    </div>
-  )
-}
-
-function BottomPanel({
-  activeTab, onTabChange, validationErrors, consoleEntries, history,
-}: {
-  activeTab: string
-  onTabChange: (tab: 'problems' | 'output' | 'logs' | 'history' | 'schema') => void
-  validationErrors: { line: number; column: number; message: string }[]
-  consoleEntries: { id: string; type: string; message: string; timestamp: number }[]
-  history: { id: string; content: string; timestamp: number; label: string }[]
-}) {
-  const { setContent } = useEditorStore()
-  return (
-    <div className="shrink-0 bg-bg-primary border-t border-border flex flex-col" style={{ height: '180px' }}>
-      <div className="flex items-center shrink-0 border-b border-border" style={{ height: '40px', padding: '0 24px', gap: '16px' }}>
-        {bottomTabs.map((tab) => {
-          const isActive = activeTab === tab.id
-          const count = tab.id === 'problems' ? validationErrors.length : 0
-          return (
-            <button
-              key={tab.id}
-              onClick={() => onTabChange(tab.id)}
-              role="tab"
-              aria-selected={isActive}
-              className={cn(
-                'relative flex items-center gap-1.5 transition-colors shrink-0',
-                isActive ? 'text-text-primary font-medium' : 'text-text-muted hover:text-text-secondary'
-              )}
-              style={{ height: '100%', fontSize: '14px' }}
-            >
-              <span>{tab.label}</span>
-              {count > 0 && (
-                <span className="flex items-center justify-center rounded-full bg-danger text-white font-semibold" style={{ minWidth: '18px', height: '18px', fontSize: '10px', padding: '0 4px' }}>
-                  {count}
-                </span>
-              )}
-              {isActive && (
-                <span className="absolute bottom-0 left-0 right-0 rounded-full bg-accent" style={{ height: '2px' }} />
-              )}
-            </button>
-          )
-        })}
-      </div>
-      <div className="flex-1 overflow-y-auto font-mono" style={{ padding: '12px 24px', fontSize: '12px' }}>
-        {activeTab === 'problems' && (
-          validationErrors.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-full text-center">
-              <CheckCircle size={20} className="text-success mb-2" />
-              <p className="text-text-primary font-medium" style={{ fontSize: '14px' }}>No problems detected</p>
-              <p className="text-text-muted" style={{ fontSize: '13px', marginTop: '2px' }}>Your JSON is valid and well-formed.</p>
-            </div>
-          ) : (
-            <div className="space-y-1">
-              {validationErrors.map((err, i) => (
-                <div key={i} className="flex items-start gap-2 py-1 px-2 rounded-lg hover:bg-hover">
-                  <XCircle size={12} className="text-danger shrink-0 mt-0.5" />
-                  <span className="text-text-primary">{err.message}</span>
-                  <span className="text-text-muted ml-auto shrink-0" style={{ fontSize: '10px' }}>L{err.line}:{err.column}</span>
-                </div>
-              ))}
-            </div>
-          )
-        )}
-        {activeTab === 'output' && (
-          <div className="space-y-2 py-1">
-            <div className="flex items-center gap-2 text-success">
-              <CheckCircle size={12} />
-              <span style={{ fontSize: '13px' }}>JSON Corrector ready</span>
-            </div>
-            <p className="text-text-muted" style={{ fontSize: '11px', paddingLeft: '20px' }}>All features operate offline. No data is sent to any server.</p>
-          </div>
-        )}
-        {activeTab === 'logs' && (
-          consoleEntries.length === 0 ? (
-            <div className="text-text-muted italic" style={{ fontSize: '12px', paddingTop: '8px' }}>No log entries yet.</div>
-          ) : (
-            <div className="space-y-0.5">
-              {consoleEntries.slice(-50).map((entry) => (
-                <div key={entry.id} className="flex items-start gap-2 py-0.5 px-1 rounded-lg hover:bg-hover">
-                  <span className={cn(
-                    'shrink-0 mt-0.5',
-                    entry.type === 'error' ? 'text-danger' : entry.type === 'success' ? 'text-success' : entry.type === 'warning' ? 'text-warning' : 'text-text-secondary'
-                  )} style={{ fontSize: '12px' }}>
-                    {entry.type === 'error' ? '\u2715' : entry.type === 'success' ? '\u2713' : entry.type === 'warning' ? '\u26A0' : '\u2139'}
-                  </span>
-                  <span className="text-text-primary flex-1">{entry.message}</span>
-                  <span className="text-text-muted shrink-0" style={{ fontSize: '10px' }}>
-                    {new Date(entry.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                  </span>
-                </div>
-              ))}
-            </div>
-          )
-        )}
-        {activeTab === 'history' && (
-          history.length === 0 ? (
-            <div className="text-text-muted italic" style={{ fontSize: '12px', paddingTop: '8px' }}>No history yet.</div>
-          ) : (
-            <div className="space-y-0.5">
-              {history.slice(-20).reverse().map((entry) => (
-                <div key={entry.id} className="flex items-center justify-between py-1 px-2 rounded-lg hover:bg-hover">
-                  <div className="min-w-0 flex-1">
-                    <span className="text-text-primary" style={{ fontSize: '12px' }}>{entry.label}</span>
-                    <span className="text-text-muted ml-2" style={{ fontSize: '10px' }}>
-                      {new Date(entry.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                    </span>
-                  </div>
-                  <button
-                    onClick={() => setContent(entry.content)}
-                    className="text-accent hover:text-accent-hover shrink-0 ml-2 font-medium"
-                    style={{ fontSize: '10px' }}
-                  >
-                    Restore
-                  </button>
-                </div>
-              ))}
-            </div>
-          )
-        )}
-        {activeTab === 'schema' && (
-          <div className="text-text-muted" style={{ fontSize: '12px', paddingTop: '12px' }}>Run schema validation to see results here.</div>
-        )}
       </div>
     </div>
   )

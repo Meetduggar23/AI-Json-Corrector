@@ -1,8 +1,8 @@
-import { useCallback, useRef } from 'react'
+import { useCallback } from 'react'
 import { useEditorStore } from '@/store/editorStore'
 import { validateJson } from '@/services/validator'
 import { computeStatistics } from '@/utils/statistics'
-import { generateId, debounce } from '@/utils/helpers'
+import { generateId } from '@/utils/helpers'
 import { trackActivity } from '@/utils/activity'
 
 export function useValidator() {
@@ -43,9 +43,5 @@ export function useValidator() {
     return result.valid
   }, [setValidationErrors, setStatistics, addConsoleEntry])
 
-  const debouncedValidate = useRef(
-    debounce((content: unknown) => validate(content as string), 500)
-  ).current
-
-  return { validate, debouncedValidate }
+  return { validate }
 }

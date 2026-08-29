@@ -25,15 +25,6 @@ const settingGroups: {
     type: 'number',
   },
   {
-    title: 'Word Wrap',
-    key: 'wordWrap',
-    type: 'select',
-    options: [
-      { label: 'On', value: 'on' },
-      { label: 'Off', value: 'off' },
-    ],
-  },
-  {
     title: 'Tab Size',
     key: 'tabSize',
     type: 'select',
@@ -44,8 +35,46 @@ const settingGroups: {
     ],
   },
   {
+    title: 'Indent Style',
+    key: 'indentStyle',
+    type: 'select',
+    options: [
+      { label: 'Spaces', value: 'spaces' },
+      { label: 'Tab', value: 'tab' },
+    ],
+  },
+  {
+    title: 'Line Numbers',
+    key: 'lineNumbers',
+    type: 'select',
+    options: [
+      { label: 'On', value: 'on' },
+      { label: 'Off', value: 'off' },
+      { label: 'Relative', value: 'relative' },
+    ],
+  },
+  {
+    title: 'Word Wrap',
+    key: 'wordWrap',
+    type: 'select',
+    options: [
+      { label: 'On', value: 'on' },
+      { label: 'Off', value: 'off' },
+    ],
+  },
+  {
     title: 'Minimap',
     key: 'minimap',
+    type: 'toggle',
+  },
+  {
+    title: 'Auto Format on Open',
+    key: 'autoFormat',
+    type: 'toggle',
+  },
+  {
+    title: 'Auto Repair on Failed Validation',
+    key: 'autoRepair',
     type: 'toggle',
   },
   {

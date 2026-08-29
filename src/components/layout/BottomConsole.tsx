@@ -79,9 +79,7 @@ export function BottomConsole() {
         {bottomTab === 'output' && <OutputTab />}
         {bottomTab === 'logs' && <LogsTab entries={consoleEntries} />}
         {bottomTab === 'history' && <HistoryTab />}
-        {bottomTab === 'schema' && (
-          <div className="text-text-muted py-3 text-[11px]">Run schema validation to see results here.</div>
-        )}
+        {bottomTab === 'schema' && <SchemaTab />}
       </div>
     </div>
   )
@@ -188,6 +186,45 @@ function HistoryTab() {
           </button>
         </div>
       ))}
+    </div>
+  )
+}
+
+function SchemaTab() {
+  const { content, validationErrors } = useEditorStore()
+  const hasContent = content.trim().length > 0
+  const hasErrors = validationErrors.length > 0
+
+  if (!hasContent) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full text-center py-8">
+        <FileSearch size={22} className="text-text-muted/40 mb-2" />
+        <p className="text-text-secondary text-[13px] font-medium">No content loaded</p>
+        <p className="text-text-muted text-[12px] mt-0.5">Open a file to view schema validation status.</p>
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-2 py-1">
+      <div className="flex items-center gap-2">
+        <span className="text-[11px] uppercase tracking-wider text-text-muted font-semibold">JSON Schema</span>
+      </div>
+      <div className="space-y-1">
+        <div className="flex items-center justify-between py-1 px-2 rounded-lg">
+          <span className="text-text-secondary text-[12px]">Content Loaded</span>
+          <span className="text-success text-[12px] font-medium">✓ Yes</span>
+        </div>
+        <div className="flex items-center justify-between py-1 px-2 rounded-lg">
+          <span className="text-text-secondary text-[12px]">JSON Validity</span>
+          <span className={hasErrors ? 'text-danger text-[12px] font-medium' : 'text-success text-[12px] font-medium'}>
+            {hasErrors ? `✗ ${validationErrors.length} error(s)` : '✓ Valid'}
+          </span>
+        </div>
+      </div>
+      <p className="text-text-muted text-[11px] mt-2">
+        Use the Schema page to validate against a JSON Schema.
+      </p>
     </div>
   )
 }

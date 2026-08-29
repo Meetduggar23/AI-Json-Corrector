@@ -39,11 +39,11 @@ export function HistoryPanel() {
               onClick={() => restore(index)}
             >
               <div className="min-w-0 flex-1">
-                <p className="text-xs text-text-primary truncate">{entry.label}</p>
+                <p className="text-xs text-text truncate">{entry.label}</p>
                 <p className="text-[10px] text-text-muted">{dayjs(entry.timestamp).fromNow()}</p>
               </div>
               {index === historyIndex && (
-                <span className="text-[10px] text-accent font-medium ml-2 shrink-0">Current</span>
+                <span className="text-[10px] text-primary font-medium ml-2 shrink-0">Current</span>
               )}
             </div>
           ))}

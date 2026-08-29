@@ -23,9 +23,9 @@ export default function RepairPage() {
   return (
     <div className="h-full flex flex-col">
       <EditorToolbar />
-      <div className="h-9 flex items-center gap-2 px-3 border-b border-border bg-toolbar/50 shrink-0">
-        <Wrench size={14} className="text-accent" />
-        <span className="text-xs font-medium text-text-primary">Repair</span>
+      <div className="h-9 flex items-center gap-2 px-3 border-b border-border bg-topbar-bg/50 shrink-0">
+        <Wrench size={14} className="text-primary" />
+        <span className="text-xs font-medium text-text">Repair</span>
         <span className="text-xs text-text-muted">— Fix common JSON errors automatically</span>
       </div>
       <div className="flex-1 flex">
@@ -34,7 +34,7 @@ export default function RepairPage() {
             <MonacoEditor />
           </div>
         </div>
-        <div className="w-[240px] border-l border-border bg-bg-primary flex flex-col">
+        <div className="w-[240px] border-l border-border bg-bg flex flex-col">
           <div className="h-8 flex items-center px-3 border-b border-border shrink-0">
             <span className="text-[11px] font-semibold text-text-secondary uppercase tracking-wider">Quick Fixes</span>
           </div>

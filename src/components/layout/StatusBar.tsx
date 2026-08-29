@@ -18,8 +18,8 @@ export function StatusBar() {
   const hasContent = content.trim().length > 0
 
   return (
-    <div className="h-6 bg-toolbar border-t border-border flex items-center justify-between px-4 shrink-0 select-none" style={{ fontSize: '11px' }}>
-      <div className="flex items-center gap-3">
+    <div className="h-6 bg-statusbar-bg border-t border-border flex items-center justify-between px-3 shrink-0 select-none text-[11px]">
+      <div className="flex items-center gap-2">
         <span className="flex items-center gap-1.5">
           {isRunning ? (
             <span className="w-1.5 h-1.5 rounded-full bg-warning animate-pulse" />
@@ -30,22 +30,22 @@ export function StatusBar() {
             {isRunning ? 'Running...' : !hasContent ? 'No content' : hasErrors ? `${validationErrors.length} error(s)` : 'Valid'}
           </span>
         </span>
-        <span className="text-border">|</span>
-        <span className="text-text-muted truncate" style={{ maxWidth: '200px' }}>{fileName || 'untitled'}</span>
+        <span className="text-border-strong">|</span>
+        <span className="text-text-muted truncate max-w-[200px]">{fileName || 'untitled'}</span>
       </div>
-      <div className="flex items-center gap-3 text-text-muted">
+      <div className="flex items-center gap-2 text-text-muted">
         {statistics && (
           <>
             <span>{statistics.keys} keys</span>
-            <span className="text-border">|</span>
+            <span className="text-border-strong">|</span>
           </>
         )}
         <span>Ln {stats.lines}</span>
-        <span className="text-border">|</span>
+        <span className="text-border-strong">|</span>
         <span>{stats.chars.toLocaleString()} chars</span>
-        <span className="text-border">|</span>
+        <span className="text-border-strong">|</span>
         <span>{formatBytes(stats.size)}</span>
-        <span className="text-border">|</span>
+        <span className="text-border-strong">|</span>
         <span>Spaces: {tabSize}</span>
       </div>
     </div>

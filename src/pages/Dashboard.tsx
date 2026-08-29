@@ -41,7 +41,7 @@ function loadRecentFiles(): RecentFile[] {
 
 function saveRecentFiles(files: RecentFile[]): void {
   try {
-    localStorage.setItem(STORAGE_KEY_FILES, JSON.stringify(files.slice(0, 20)))
+    localStorage.setItem(STORAGE_KEY_FILES, JSON.stringify(files.slice(0, 10)))
   } catch { }
 }
 
@@ -57,13 +57,11 @@ function trackFileOpen(name: string, status: 'valid' | 'invalid', size: number):
 
 export function Dashboard() {
   const {
-    validationErrors,
     setContent, setFileName, setStatistics, setValidationErrors,
     addConsoleEntry,
   } = useEditorStore()
   const navigate = useNavigate()
   const fileInputRef = useRef<HTMLInputElement>(null)
-
   const recentFiles = useMemo(() => loadRecentFiles(), [])
 
   const handleOpenFile = useCallback(() => {
@@ -90,6 +88,14 @@ export function Dashboard() {
     e.target.value = ''
   }, [setContent, setFileName, setStatistics, setValidationErrors, addConsoleEntry, navigate])
 
+  const handleNewFile = useCallback(() => {
+    setContent('{\n  \n}')
+    setFileName('untitled.json')
+    setStatistics(null)
+    setValidationErrors([])
+    navigate('/')
+  }, [setContent, setFileName, setStatistics, setValidationErrors, navigate])
+
   const handleAction = useCallback((action: typeof ACTIONS[number]) => {
     const t = action.label.toLowerCase()
     const type: ActivityEntry['type'] = t.includes('validate') ? 'validate'
@@ -99,52 +105,66 @@ export function Dashboard() {
       : t.includes('schema') ? 'schema'
       : 'diff'
     trackActivity({ type, label: action.label, path: action.path })
-    addConsoleEntry({ id: generateId(), type: 'info', message: `Navigated to ${action.label}`, timestamp: Date.now() })
     navigate(action.path)
-  }, [navigate, addConsoleEntry])
+  }, [navigate])
 
   const handleOpenRecent = useCallback((file: RecentFile) => {
-    // Navigate to workspace — user needs to open the file manually since
-    // recent files no longer store content (localStorage size safety)
     setFileName(file.name)
     navigate('/')
-    addConsoleEntry({ id: generateId(), type: 'info', message: `Opened ${file.name} from recents — use Open File to load`, timestamp: Date.now() })
-  }, [setFileName, addConsoleEntry, navigate])
+  }, [setFileName, navigate])
 
   return (
     <div className="h-full flex flex-col overflow-hidden">
       <input ref={fileInputRef} type="file" accept=".json,.txt" onChange={handleFileChange} className="hidden" />
 
-      <div className="flex-1 overflow-y-auto overflow-x-auto" style={{ padding: '32px' }}>
-        <div style={{ minWidth: '640px', maxWidth: '1280px' }}>
+      <div className="flex-1 overflow-y-auto" style={{ padding: '32px' }}>
+        <div style={{ maxWidth: '1024px' }}>
+          {/* Welcome */}
           <div style={{ marginBottom: '32px' }}>
-            <h1 style={{ fontSize: '48px', fontWeight: 700, lineHeight: 1.1, letterSpacing: '-0.02em' }} className="text-text-primary">
+            <h1 style={{ fontSize: '28px', fontWeight: 600, lineHeight: 1.2 }} className="text-text">
               Welcome back 👋
             </h1>
-            <p style={{ fontSize: '15px', marginTop: '8px' }} className="text-text-secondary">
+            <p style={{ fontSize: '14px', marginTop: '8px' }} className="text-text-secondary">
               Validate, repair and format your JSON files locally.
             </p>
           </div>
 
-          <section style={{ marginBottom: '32px' }}>
-            <h2 style={{ fontSize: '24px', fontWeight: 600, marginBottom: '20px' }} className="text-text-primary">Quick Actions</h2>
-            <div className="overflow-x-auto -mx-2 px-2">
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', minWidth: '600px' }}>
-                {ACTIONS.map((action) => (
-                  <ActionCard key={action.path} action={action} onClick={() => handleAction(action)} />
-                ))}
-              </div>
-            </div>
-          </section>
+          {/* Primary Actions */}
+          <div className="flex gap-3" style={{ marginBottom: '32px' }}>
+            <button
+              onClick={handleOpenFile}
+              className="inline-flex items-center gap-2 rounded-lg bg-primary text-white text-[13px] font-medium hover:brightness-110 transition-all h-10 px-5"
+            >
+              <FolderOpen size={16} />
+              Open JSON File
+            </button>
+            <button
+              onClick={handleNewFile}
+              className="inline-flex items-center gap-2 rounded-lg border border-border text-text text-[13px] font-medium hover:bg-surface-hover transition-all h-10 px-5"
+            >
+              Create New JSON
+            </button>
+          </div>
 
-          <section>
-            <h2 style={{ fontSize: '24px', fontWeight: 600, marginBottom: '20px' }} className="text-text-primary">Recent Files</h2>
+          {/* Quick Actions */}
+          <div style={{ marginBottom: '32px' }}>
+            <h2 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '16px' }} className="text-text">Quick Actions</h2>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
+              {ACTIONS.map((action) => (
+                <ActionCard key={action.path} action={action} onClick={() => handleAction(action)} />
+              ))}
+            </div>
+          </div>
+
+          {/* Recent Files */}
+          <div>
+            <h2 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '16px' }} className="text-text">Recent Files</h2>
             {recentFiles.length === 0 ? (
               <EmptyState onOpen={handleOpenFile} />
             ) : (
-              <RecentFilesTable files={recentFiles} onOpenRecent={handleOpenRecent} onOpen={handleOpenFile} />
+              <RecentFilesTable files={recentFiles} onOpenRecent={handleOpenRecent} />
             )}
-          </section>
+          </div>
         </div>
       </div>
     </div>
@@ -156,34 +176,30 @@ function ActionCard({ action, onClick }: { action: typeof ACTIONS[number]; onCli
   return (
     <button
       onClick={onClick}
-      className="group flex items-center gap-5 rounded-xl bg-surface border border-border p-6 transition-all duration-200 text-left hover:-translate-y-0.5 hover:shadow-lg"
-      style={{ height: '104px' }}
+      className="group flex items-center gap-4 rounded-xl bg-surface border border-border p-[18px] transition-all duration-150 text-left hover:bg-surface-hover"
+      style={{ height: '96px' }}
     >
-      <div
-        className="flex items-center justify-center shrink-0 rounded-[14px] bg-accent/10"
-        style={{ width: '56px', height: '56px' }}
-      >
-        <Icon size={24} className="text-accent" />
+      <div className="flex items-center justify-center shrink-0 rounded-lg bg-primary/10 w-[42px] h-[42px]">
+        <Icon size={20} className="text-primary" />
       </div>
       <div className="flex-1 min-w-0">
-        <p style={{ fontSize: '16px', fontWeight: 600 }} className="text-text-primary">{action.label}</p>
-        <p style={{ fontSize: '14px', marginTop: '2px' }} className="text-text-muted leading-snug">{action.desc}</p>
+        <p className="text-[15px] font-medium text-text">{action.label}</p>
+        <p className="text-[13px] text-text-muted mt-0.5 leading-snug">{action.desc}</p>
       </div>
-      <ArrowRight size={16} className="shrink-0 text-text-muted group-hover:text-accent transition-colors" />
+      <ArrowRight size={16} className="shrink-0 text-text-muted group-hover:text-primary transition-colors" />
     </button>
   )
 }
 
 function EmptyState({ onOpen }: { onOpen: () => void }) {
   return (
-    <div className="rounded-xl bg-surface border border-border flex flex-col items-center justify-center" style={{ padding: '48px 24px' }}>
-      <FolderOpen size={32} className="text-text-muted/40" />
-      <p style={{ fontSize: '15px', fontWeight: 500, marginTop: '16px' }} className="text-text-secondary">No recent files</p>
-      <p style={{ fontSize: '14px', marginTop: '4px' }} className="text-text-muted">Open or drag a JSON file to get started.</p>
+    <div className="rounded-xl bg-surface border border-border flex flex-col items-center justify-center p-12">
+      <FolderOpen size={28} className="text-text-muted/40" />
+      <p className="text-[14px] font-medium text-text-secondary mt-3">No recent files</p>
+      <p className="text-[13px] text-text-muted mt-1">Open or drag a JSON file to get started.</p>
       <button
         onClick={onOpen}
-        className="inline-flex items-center gap-2 rounded-[10px] bg-accent text-white hover:bg-accent-hover transition-colors"
-        style={{ height: '40px', padding: '0 20px', fontSize: '14px', fontWeight: 500, marginTop: '16px' }}
+        className="inline-flex items-center gap-2 rounded-lg bg-primary text-white text-[13px] font-medium hover:brightness-110 transition-all h-10 px-5 mt-4"
       >
         <FolderOpen size={14} />
         Open File
@@ -192,54 +208,50 @@ function EmptyState({ onOpen }: { onOpen: () => void }) {
   )
 }
 
-function RecentFilesTable({ files, onOpenRecent, onOpen: _onOpen }: {
-  files: RecentFile[]
-  onOpenRecent: (file: RecentFile) => void
-  onOpen: () => void
-}) {
+function RecentFilesTable({ files, onOpenRecent }: { files: RecentFile[]; onOpenRecent: (file: RecentFile) => void }) {
   return (
     <div className="rounded-xl bg-surface border border-border overflow-hidden">
-      <table className="w-full" style={{ fontSize: '14px' }}>
+      <table className="w-full text-[14px]">
         <thead>
           <tr className="border-b border-border">
-            <th className="text-left font-medium px-6 text-text-muted" style={{ height: '48px', fontSize: '12px' }}>File Name</th>
-            <th className="text-left font-medium px-6 text-text-muted" style={{ height: '48px', fontSize: '12px' }}>Status</th>
-            <th className="text-left font-medium px-6 text-text-muted" style={{ height: '48px', fontSize: '12px' }}>Size</th>
-            <th className="text-left font-medium px-6 text-text-muted" style={{ height: '48px', fontSize: '12px' }}>Last Modified</th>
-            <th className="text-right font-medium px-6 text-text-muted" style={{ height: '48px', fontSize: '12px' }}>Action</th>
+            <th className="text-left font-medium px-5 text-text-muted h-10 text-[12px]">File Name</th>
+            <th className="text-left font-medium px-5 text-text-muted h-10 text-[12px]">Status</th>
+            <th className="text-left font-medium px-5 text-text-muted h-10 text-[12px]">Size</th>
+            <th className="text-left font-medium px-5 text-text-muted h-10 text-[12px]">Last Opened</th>
+            <th className="text-right font-medium px-5 text-text-muted h-10 text-[12px]">Action</th>
           </tr>
         </thead>
         <tbody>
           {files.map((file) => (
             <tr
               key={file.id}
-              className="border-b border-border/50 last:border-0 hover:bg-hover transition-colors cursor-pointer"
-              style={{ height: '52px' }}
+              className="border-b border-border/50 last:border-0 hover:bg-surface-hover transition-colors cursor-pointer"
+              style={{ height: '44px' }}
               onClick={() => onOpenRecent(file)}
             >
-              <td className="px-6">
-                <div className="flex items-center gap-3">
-                  <span className="font-mono font-bold text-accent" style={{ fontSize: '14px' }}>{'{ }'}</span>
-                  <span className="font-medium text-text-primary">{file.name}</span>
+              <td className="px-5">
+                <div className="flex items-center gap-2.5">
+                  <span className="font-mono font-bold text-primary text-[13px]">{'{ }'}</span>
+                  <span className="font-medium text-text text-[13px]">{file.name}</span>
                 </div>
               </td>
-              <td className="px-6">
+              <td className="px-5">
                 <span className={cn(
-                  'inline-flex items-center rounded-full font-medium',
+                  'inline-flex items-center rounded-full font-medium text-[11px] h-5 px-2',
                   file.status === 'valid' ? 'bg-success/15 text-success' : 'bg-danger/15 text-danger'
-                )} style={{ fontSize: '12px', height: '24px', padding: '0 8px' }}>
+                )}>
                   {file.status === 'valid' ? 'Valid' : 'Invalid'}
                 </span>
               </td>
-              <td className="px-6 text-text-secondary">{formatBytes(file.size)}</td>
-              <td className="px-6 text-text-secondary">
+              <td className="px-5 text-text-secondary text-[13px]">{formatBytes(file.size)}</td>
+              <td className="px-5 text-text-secondary text-[13px]">
                 {new Date(file.timestamp).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
               </td>
-              <td className="px-6">
-                <div className="flex items-center justify-end gap-1">
+              <td className="px-5">
+                <div className="flex items-center justify-end">
                   <button
                     onClick={(e) => { e.stopPropagation(); onOpenRecent(file) }}
-                    className="w-8 h-8 flex items-center justify-center rounded-lg text-text-muted hover:text-text-primary hover:bg-hover transition-colors"
+                    className="w-7 h-7 flex items-center justify-center rounded-md text-text-muted hover:text-text hover:bg-surface-hover transition-colors"
                     title="Open in Workspace"
                   >
                     <Folder size={14} />

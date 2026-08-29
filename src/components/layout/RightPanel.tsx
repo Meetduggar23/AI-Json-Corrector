@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react'
-import { useLocation, useNavigate } from 'react-router-dom'
-import { ChevronDown, ChevronRight, FolderOpen, Wrench, BookOpen, History, FileText, Hash, Type, Braces, GitCompare, Sparkles, Shrink, FileCheck, FileSearch, Settings, Layers, BarChart3, Terminal } from 'lucide-react'
+import { useLocation } from 'react-router-dom'
+import { ChevronDown, ChevronRight, FolderOpen, Wrench, History, FileText, Hash, Type, Braces, GitCompare, Sparkles, Shrink, FileCheck, FileSearch, Settings, Layers, BarChart3 } from 'lucide-react'
 import { useEditorStore, useSettingsStore } from '@/store/editorStore'
 import { cn, formatBytes } from '@/utils/helpers'
 import { minifyJson, beautifyJson } from '@/services/formatter'
@@ -58,7 +58,6 @@ const navPaths = {
 export function RightPanel() {
   const location = useLocation()
   const path = location.pathname
-  const navigate = useNavigate()
   const {
     content, originalContent, validationErrors, statistics, history: historyEntries, fileName,
   } = useEditorStore()
@@ -67,12 +66,9 @@ export function RightPanel() {
   const [workspaceOpen, setWorkspaceOpen] = useState(true)
   const [contextOpen, setContextOpen] = useState(true)
   const [inspectorOpen, setInspectorOpen] = useState(true)
-  const [shortcutsOpen, setShortcutsOpen] = useState(true)
 
   const hasContent = content.trim().length > 0
   const recentRepairs = historyEntries.filter((h) => h.label.toLowerCase().includes('repair')).length
-  const schemaCount = 0
-  const historyLen = historyEntries.length
 
   const diffStats = useMemo(() => lineDiff(originalContent, content), [originalContent, content])
 
@@ -84,17 +80,15 @@ export function RightPanel() {
   const savedBytes = clamp(originalSize - compressedSize, 0, originalSize)
 
   const rootType = getJsonRootType(content)
-
   const errorCount = validationErrors.length
   const firstError = validationErrors[0]
 
   return (
-    <div className="h-full bg-bg-primary overflow-y-auto flex flex-col w-full" style={{ padding: '18px', gap: '16px' }}>
+    <div className="h-full bg-panel-bg overflow-y-auto flex flex-col w-full p-4 gap-3">
       <Section title="Workspace" open={workspaceOpen} onToggle={setWorkspaceOpen}>
-        <Row icon={FolderOpen} label="Open Files" value={String(hasContent ? 1 : 0)} />
+        <Row icon={FolderOpen} label="Open Files" value={hasContent ? '1' : '0'} />
         <Row icon={Wrench} label="Recent Repairs" value={String(recentRepairs)} />
-        <Row icon={BookOpen} label="Schemas Loaded" value={String(schemaCount)} />
-        <Row icon={History} label="History Entries" value={String(historyLen)} />
+        <Row icon={History} label="History Entries" value={String(historyEntries.length)} />
       </Section>
 
       <Section title={getContextTitle(path)} open={contextOpen} onToggle={setContextOpen}>
@@ -102,7 +96,7 @@ export function RightPanel() {
           hasContent, errorCount, firstError, statistics,
           diffStats, recentRepairs, historyEntries, content, originalContent,
           originalSize, formattedSize, compressedSize, savedBytes,
-          rootType, path, theme, fontSize, tabSize, navigate,
+          rootType, path, theme, fontSize, tabSize,
         })}
       </Section>
 
@@ -122,23 +116,12 @@ export function RightPanel() {
       )}
 
       {!hasContent && (
-        <div className="flex flex-col items-center justify-center rounded-xl bg-surface border border-border" style={{ padding: '32px 24px' }}>
-          <Terminal size={24} className="text-text-muted/40" />
-          <p className="text-[14px] font-medium text-text-secondary mt-3">No document loaded</p>
-          <p className="text-[13px] text-text-muted mt-1 text-center">Open or drag a JSON file to begin.</p>
+        <div className="flex flex-col items-center justify-center rounded-lg bg-surface border border-border p-6">
+          <FolderOpen size={20} className="text-text-muted/40 mb-2" />
+          <p className="text-[13px] text-text-secondary font-medium">No document loaded</p>
+          <p className="text-[12px] text-text-muted mt-1 text-center">Open or paste JSON to inspect.</p>
         </div>
       )}
-
-      <Section title="Keyboard Shortcuts" open={shortcutsOpen} onToggle={setShortcutsOpen}>
-        {shortcutItems.map((item) => (
-          <div key={item.label} className="flex items-center justify-between" style={{ padding: '4px 0' }}>
-            <span className="text-[13px] text-text-secondary">{item.label}</span>
-            <span className="inline-flex items-center rounded-md font-mono bg-bg-primary border border-border text-text-muted" style={{ fontSize: '11px', height: '22px', padding: '0 8px', borderRadius: '8px' }}>
-              {item.key}
-            </span>
-          </div>
-        ))}
-      </Section>
     </div>
   )
 }
@@ -146,13 +129,13 @@ export function RightPanel() {
 function getContextTitle(path: string): string {
   if (path === navPaths.validator) return 'Validation'
   if (path === navPaths.repair) return 'Repair Summary'
-  if (path === navPaths.beautify) return 'Formatting Info'
-  if (path === navPaths.minify) return 'Compression Info'
-  if (path === navPaths.schema) return 'Schema Validation'
+  if (path === navPaths.beautify) return 'Formatting'
+  if (path === navPaths.minify) return 'Compression'
+  if (path === navPaths.schema) return 'Schema Status'
   if (path === navPaths.diff) return 'Diff Summary'
-  if (path === navPaths.history) return 'History Details'
+  if (path === navPaths.history) return 'History'
   if (path === navPaths.settings) return 'Preferences'
-  if (path === navPaths.dashboard) return 'Dashboard Info'
+  if (path === navPaths.dashboard) return 'Status'
   return 'Overview'
 }
 
@@ -175,7 +158,6 @@ interface ContextProps {
   theme: string
   fontSize: number
   tabSize: number
-  navigate: (p: string) => void
 }
 
 function renderContext(path: string, p: ContextProps) {
@@ -183,12 +165,7 @@ function renderContext(path: string, p: ContextProps) {
     case '/validator':
       return (
         <>
-          <StatusBadge
-            label="JSON Status"
-            valid={p.hasContent && p.errorCount === 0}
-            invalid={p.hasContent && p.errorCount > 0}
-            empty={!p.hasContent}
-          >
+          <StatusBadge label="JSON Status" valid={p.hasContent && p.errorCount === 0} invalid={p.hasContent && p.errorCount > 0} empty={!p.hasContent}>
             {!p.hasContent ? 'No content' : p.errorCount === 0 ? 'Valid' : `${p.errorCount} error${p.errorCount !== 1 ? 's' : ''}`}
           </StatusBadge>
           {p.firstError && (
@@ -200,24 +177,17 @@ function renderContext(path: string, p: ContextProps) {
           <Row icon={Hash} label="Characters" value={String(p.content.length)} />
         </>
       )
-
     case '/repair':
       return (
         <>
           <Row icon={Wrench} label="Repairs Applied" value={String(p.recentRepairs)} />
           <Row icon={Hash} label="Original Size" value={String(p.originalSize)} />
           <Row icon={Hash} label="Current Size" value={String(p.content.length)} />
-          <StatusBadge
-            label="Status"
-            valid={p.hasContent}
-            invalid={!p.hasContent}
-            empty={false}
-          >
+          <StatusBadge label="Status" valid={p.hasContent} invalid={!p.hasContent} empty={false}>
             {p.hasContent ? 'Ready' : 'No content'}
           </StatusBadge>
         </>
       )
-
     case '/beautify':
       return (
         <>
@@ -226,7 +196,6 @@ function renderContext(path: string, p: ContextProps) {
           <Row icon={Hash} label="Formatted Size" value={formatBytes(p.formattedSize)} />
         </>
       )
-
     case '/minify':
       return (
         <>
@@ -235,7 +204,6 @@ function renderContext(path: string, p: ContextProps) {
           <Row icon={Shrink} label="Saved" value={formatBytes(p.savedBytes)} />
         </>
       )
-
     case '/schema':
       return (
         <>
@@ -243,7 +211,6 @@ function renderContext(path: string, p: ContextProps) {
           <Row icon={FileCheck} label="JSON Validity" value={p.hasContent && p.errorCount === 0 ? 'Valid' : p.hasContent ? `${p.errorCount} error(s)` : '-'} />
         </>
       )
-
     case '/diff':
       return (
         <>
@@ -252,7 +219,6 @@ function renderContext(path: string, p: ContextProps) {
           <Row icon={GitCompare} label="Modified Lines" value={String(p.diffStats.modified)} />
         </>
       )
-
     case '/history':
       return (
         <>
@@ -260,7 +226,6 @@ function renderContext(path: string, p: ContextProps) {
           <Row icon={History} label="Can Undo" value={p.historyEntries.length > 1 ? 'Yes' : 'No'} />
         </>
       )
-
     case '/settings':
       return (
         <>
@@ -269,91 +234,55 @@ function renderContext(path: string, p: ContextProps) {
           <Row icon={Hash} label="Tab Width" value={`${p.tabSize} spaces`} />
         </>
       )
-
     default:
       return (
-        <p className="text-[13px] text-text-muted leading-relaxed">
+        <p className="text-[12px] text-text-muted leading-relaxed">
           Validate, repair and format your JSON files. All processing is done locally — nothing leaves your machine.
         </p>
       )
   }
 }
 
-
-
-const shortcutItems = [
-  { label: 'Run Validation', key: 'Ctrl+Enter' },
-  { label: 'Save / Download', key: 'Ctrl+S' },
-  { label: 'Search', key: 'Ctrl+F' },
-  { label: 'Toggle Sidebar', key: 'Ctrl+Shift+B' },
-  { label: 'Toggle Panel', key: 'Ctrl+Shift+]' },
-  { label: 'Rename File', key: 'F2' },
-]
-
 function Row({ icon: Icon, label, value }: { icon: LucideIcon; label: string; value: string }) {
   return (
-    <div className="flex items-center justify-between" style={{ minHeight: '28px' }}>
+    <div className="flex items-center justify-between h-7">
       <div className="flex items-center gap-2">
         <Icon size={14} className="text-text-muted shrink-0" />
-        <span className="text-text-secondary" style={{ fontSize: '13px', lineHeight: '20px' }}>{label}</span>
+        <span className="text-text-secondary text-[13px]">{label}</span>
       </div>
-      <span className="text-text-primary font-medium text-right" style={{ fontSize: '13px', lineHeight: '20px', fontWeight: 600 }}>{value}</span>
+      <span className="text-text font-medium text-[13px]">{value}</span>
     </div>
   )
 }
 
 function StatusBadge({ label, valid, invalid, empty, children }: {
-  label: string
-  valid: boolean
-  invalid: boolean
-  empty: boolean
-  children: React.ReactNode
+  label: string; valid: boolean; invalid: boolean; empty: boolean; children: React.ReactNode
 }) {
   return (
-    <div className="flex items-center justify-between" style={{ minHeight: '28px' }}>
+    <div className="flex items-center justify-between h-7">
       <div className="flex items-center gap-2">
-        <span className={cn(
-          'w-1.5 h-1.5 rounded-full shrink-0',
-          empty && 'bg-text-muted',
-          valid && 'bg-success',
-          invalid && 'bg-danger',
-        )} />
-        <span className="text-text-secondary" style={{ fontSize: '13px' }}>{label}</span>
+        <span className={cn('w-1.5 h-1.5 rounded-full shrink-0', empty && 'bg-text-muted', valid && 'bg-success', invalid && 'bg-danger')} />
+        <span className="text-text-secondary text-[13px]">{label}</span>
       </div>
-      <span className={cn(
-        'font-medium text-right',
-        empty && 'text-text-muted',
-        valid && 'text-success',
-        invalid && 'text-danger',
-      )} style={{ fontSize: '13px', fontWeight: 600 }}>{children}</span>
+      <span className={cn('font-medium text-[13px]', empty && 'text-text-muted', valid && 'text-success', invalid && 'text-danger')}>{children}</span>
     </div>
   )
 }
 
 function Section({ title, open, onToggle, children }: {
-  title: string
-  open?: boolean
-  onToggle?: (v: boolean) => void
-  children: React.ReactNode
+  title: string; open?: boolean; onToggle?: (v: boolean) => void; children: React.ReactNode
 }) {
   const [internalOpen, setInternalOpen] = useState(true)
   const isOpen = onToggle !== undefined ? (open ?? true) : internalOpen
-  const handleToggle = () => {
-    if (onToggle) onToggle(!isOpen)
-    else setInternalOpen(!isOpen)
-  }
+  const handleToggle = () => { if (onToggle) onToggle(!isOpen); else setInternalOpen(!isOpen) }
 
   return (
-    <div className="rounded-xl bg-surface border border-border overflow-hidden" style={{ borderRadius: '14px' }}>
-      <button
-        onClick={handleToggle}
-        className="flex items-center justify-between w-full transition-colors hover:bg-hover"
-        style={{ padding: '14px 16px' }}
-      >
-        <span className="text-text-primary font-semibold" style={{ fontSize: '14px', lineHeight: '20px' }}>{title}</span>
+    <div className="rounded-lg bg-surface border border-border overflow-hidden">
+      <button onClick={handleToggle} className="flex items-center justify-between w-full hover:bg-surface-hover transition-colors px-3 py-2.5">
+        <span className="text-text font-medium text-[13px]">{title}</span>
         {isOpen ? <ChevronDown size={14} className="text-text-muted" /> : <ChevronRight size={14} className="text-text-muted" />}
       </button>
-      {isOpen && <div style={{ padding: '0 16px 14px 16px', display: 'flex', flexDirection: 'column', gap: '2px' }}>{children}</div>}
+      {isOpen && <div className="px-3 pb-2.5 flex flex-col gap-0.5">{children}</div>}
     </div>
   )
 }

@@ -7,9 +7,9 @@ export default function HistoryPage() {
   return (
     <div className="h-full flex flex-col">
       <EditorToolbar />
-      <div className="h-9 flex items-center gap-2 px-3 border-b border-border bg-toolbar/50 shrink-0">
-        <Clock size={14} className="text-accent" />
-        <span className="text-xs font-medium text-text-primary">History</span>
+      <div className="h-9 flex items-center gap-2 px-3 border-b border-border bg-topbar-bg/50 shrink-0">
+        <Clock size={14} className="text-primary" />
+        <span className="text-xs font-medium text-text">History</span>
         <span className="text-xs text-text-muted">— View and restore previous versions</span>
       </div>
       <div className="flex-1 flex">

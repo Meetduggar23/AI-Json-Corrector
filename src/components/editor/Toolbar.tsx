@@ -76,7 +76,7 @@ function EditorBtn({ icon: Icon, onClick, disabled, label }: {
     <button
       onClick={onClick}
       disabled={disabled}
-      className="inline-flex items-center gap-1 h-7 px-1.5 rounded text-[11px] text-text-secondary hover:text-text-primary hover:bg-border/30 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+      className="inline-flex items-center gap-1 h-7 px-1.5 rounded text-[11px] text-text-secondary hover:text-text hover:bg-border/30 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
       title={label}
     >
       <Icon size={14} />

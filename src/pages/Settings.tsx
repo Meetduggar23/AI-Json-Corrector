@@ -98,14 +98,14 @@ export default function SettingsPage() {
     <div className="h-full overflow-y-auto">
       <div className="p-6 max-w-2xl">
         <div className="flex items-center justify-between mb-6">
-          <h1 className="text-base font-semibold text-text-primary">Settings</h1>
+          <h1 className="text-base font-semibold text-text">Settings</h1>
           <Button variant="ghost" size="xs" onClick={handleReset}>
             Reset Defaults
           </Button>
         </div>
 
         <div className="mb-6">
-          <h2 className="text-sm font-semibold text-text-primary mb-3">Application Theme</h2>
+          <h2 className="text-sm font-semibold text-text mb-3">Application Theme</h2>
           <div className="flex gap-2">
             {appThemeOptions.map((opt) => {
               const isActive = appTheme === opt.value
@@ -115,7 +115,7 @@ export default function SettingsPage() {
                   onClick={() => setTheme(opt.value)}
                   className={`flex-1 flex flex-col items-center gap-2 rounded-xl border p-4 transition-all duration-150 ${
                     isActive
-                      ? 'border-accent bg-accent/5'
+                      ? 'border-primary bg-primary/5'
                       : 'border-border bg-surface hover:border-text-muted'
                   }`}
                 >
@@ -136,7 +136,7 @@ export default function SettingsPage() {
                     </svg>
                   </span>
                   <span className={`text-xs font-medium ${
-                    isActive ? 'text-accent' : 'text-text-secondary'
+                    isActive ? 'text-primary' : 'text-text-secondary'
                   }`}>{opt.label}</span>
                 </button>
               )
@@ -147,11 +147,11 @@ export default function SettingsPage() {
           </p>
         </div>
 
-        <h2 className="text-sm font-semibold text-text-primary mb-3">Editor Settings</h2>
+        <h2 className="text-sm font-semibold text-text mb-3">Editor Settings</h2>
         <div className="space-y-1">
           {settingGroups.map((group) => (
-            <div key={group.key} className="flex items-center justify-between h-10 px-3 rounded-lg hover:bg-hover transition-colors">
-              <span className="text-sm text-text-primary">{group.title}</span>
+            <div key={group.key} className="flex items-center justify-between h-10 px-3 rounded-lg hover:bg-surface-hover transition-colors">
+              <span className="text-sm text-text">{group.title}</span>
               <div>
                 {group.type === 'select' && group.options && (
                   <select
@@ -160,7 +160,7 @@ export default function SettingsPage() {
                       const opt = group.options?.find((o) => String(o.value) === e.target.value)
                       if (opt) updateSetting(group.key, opt.value as never)
                     }}
-                    className="bg-editor-bg border border-border rounded text-xs text-text-primary px-2.5 py-1.5 outline-none focus:border-accent min-w-[120px]"
+                    className="bg-editor-bg border border-border rounded text-xs text-text px-2.5 py-1.5 outline-none focus:border-primary min-w-[120px]"
                   >
                     {group.options.map((opt) => (
                       <option key={String(opt.value)} value={String(opt.value)}>
@@ -176,7 +176,7 @@ export default function SettingsPage() {
                     onChange={(e) => updateSetting(group.key, Number(e.target.value) as never)}
                     min={10}
                     max={30}
-                    className="w-16 bg-editor-bg border border-border rounded text-xs text-text-primary px-2.5 py-1.5 outline-none focus:border-accent text-center"
+                    className="w-16 bg-editor-bg border border-border rounded text-xs text-text px-2.5 py-1.5 outline-none focus:border-primary text-center"
                   />
                 )}
                 {group.type === 'toggle' && (
@@ -184,7 +184,7 @@ export default function SettingsPage() {
                     onClick={() => updateSetting(group.key, !settings[group.key] as never)}
                     role="switch"
                     aria-checked={!!settings[group.key]}
-                    className={`relative w-8 h-4 rounded-full transition-colors ${settings[group.key] ? 'bg-accent' : 'bg-border'}`}
+                    className={`relative w-8 h-4 rounded-full transition-colors ${settings[group.key] ? 'bg-primary' : 'bg-border'}`}
                   >
                     <div className={`absolute top-0.5 w-3 h-3 rounded-full bg-card transition-transform ${settings[group.key] ? 'translate-x-[18px]' : 'translate-x-[2px]'}`} />
                   </button>

@@ -20,7 +20,7 @@ export function DiffViewer({ original, corrected }: DiffViewerProps) {
               key={i}
               className={cn(
                 'flex px-3 py-0.5',
-                line.type === 'removed' ? 'bg-diff-removed-bg text-diff-removed-text' : 'text-text-primary'
+                line.type === 'removed' ? 'bg-diff-removed-bg text-diff-removed-text' : 'text-text'
               )}
             >
               <span className="w-8 text-text-muted text-right mr-3 shrink-0 select-none">{line.lineNumber}</span>
@@ -37,7 +37,7 @@ export function DiffViewer({ original, corrected }: DiffViewerProps) {
               key={i}
               className={cn(
                 'flex px-3 py-0.5',
-                line.type === 'added' ? 'bg-diff-added-bg text-diff-added-text' : 'text-text-primary'
+                line.type === 'added' ? 'bg-diff-added-bg text-diff-added-text' : 'text-text'
               )}
             >
               <span className="w-8 text-text-muted text-right mr-3 shrink-0 select-none">{line.lineNumber}</span>

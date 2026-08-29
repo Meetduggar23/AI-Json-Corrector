@@ -1,9 +1,9 @@
 import { useState, useRef, useCallback, useEffect } from 'react'
 import { Outlet } from 'react-router-dom'
-import { TopToolbar } from './TopToolbar'
+import { TopBar } from './TopBar'
 import { Sidebar } from './Sidebar'
 import { RightPanel } from './RightPanel'
-import { BottomConsole } from './BottomConsole'
+import { BottomPanel } from './BottomPanel'
 import { StatusBar } from './StatusBar'
 import { useEditorStore } from '@/store/editorStore'
 import { useRun } from '@/hooks/useRun'
@@ -11,8 +11,8 @@ import { useRun } from '@/hooks/useRun'
 export function Layout() {
   const { isSidebarOpen, isRightPanelOpen, toggleSidebar, toggleRightPanel } = useEditorStore()
   const { run } = useRun()
-  const [rightWidth, setRightWidth] = useState(320)
-  const [consoleHeight, setConsoleHeight] = useState(180)
+  const [rightWidth, setRightWidth] = useState(300)
+  const [consoleHeight, setConsoleHeight] = useState(160)
   const isDraggingRight = useRef(false)
   const isDraggingConsole = useRef(false)
   const runRef = useRef(run)
@@ -35,11 +35,11 @@ export function Layout() {
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
       if (isDraggingRight.current) {
-        const sidebarWidth = isSidebarOpenRef.current ? 240 : 0
-        setRightWidth(Math.max(280, Math.min(420, window.innerWidth - e.clientX - sidebarWidth)))
+        const sidebarWidth = isSidebarOpenRef.current ? 230 : 0
+        setRightWidth(Math.max(240, Math.min(400, window.innerWidth - e.clientX - sidebarWidth)))
       }
       if (isDraggingConsole.current) {
-        setConsoleHeight(Math.max(100, Math.min(400, window.innerHeight - e.clientY - 80)))
+        setConsoleHeight(Math.max(80, Math.min(400, window.innerHeight - e.clientY - 80)))
       }
     }
     const handleMouseUp = () => {
@@ -91,27 +91,41 @@ export function Layout() {
   }, [handleKeyDown])
 
   return (
-    <div className="h-screen w-screen flex flex-col bg-bg-primary text-text-primary overflow-hidden">
-      <TopToolbar />
+    <div className="h-screen w-screen flex flex-col bg-bg text-text overflow-hidden">
+      {/* Top Bar - 58px */}
+      <TopBar />
+
+      {/* Main Area - flex row */}
       <div className="flex flex-1 overflow-hidden">
+        {/* Sidebar - 230px */}
         {isSidebarOpen && <Sidebar />}
+
+        {/* Center + Right Panel */}
         <div className="flex-1 flex overflow-hidden min-w-0">
+          {/* Center: Editor + Bottom Panel */}
           <div className="flex-1 flex flex-col overflow-hidden min-w-0">
+            {/* Editor area */}
             <div className="flex-1 overflow-hidden min-w-0">
               <Outlet />
             </div>
+
+            {/* Console resize handle */}
             <div
-              className="h-px cursor-row-resize shrink-0 bg-border hover:bg-accent/30 transition-colors"
+              className="h-px cursor-row-resize shrink-0 bg-border hover:bg-primary/30 transition-colors"
               onMouseDown={handleConsoleMouseDown}
             />
+
+            {/* Bottom Panel */}
             <div style={{ height: consoleHeight }} className="shrink-0 overflow-hidden">
-              <BottomConsole />
+              <BottomPanel />
             </div>
           </div>
+
+          {/* Right Panel resize handle */}
           {isRightPanelOpen && (
             <>
               <div
-                className="w-px cursor-col-resize shrink-0 bg-border hover:bg-accent/30 transition-colors"
+                className="w-px cursor-col-resize shrink-0 bg-border hover:bg-primary/30 transition-colors"
                 onMouseDown={handleRightMouseDown}
               />
               <div style={{ width: rightWidth }} className="shrink-0 overflow-hidden">
@@ -121,6 +135,8 @@ export function Layout() {
           )}
         </div>
       </div>
+
+      {/* Status Bar - 24px */}
       <StatusBar />
     </div>
   )

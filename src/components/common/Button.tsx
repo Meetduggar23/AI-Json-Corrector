@@ -10,9 +10,9 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const variantStyles: Record<string, string> = {
-  primary: 'bg-accent text-white hover:bg-accent-hover',
-  secondary: 'bg-surface text-text-secondary border border-border hover:bg-border hover:text-text-primary',
-  ghost: 'text-text-secondary hover:text-text-primary hover:bg-border/40',
+  primary: 'bg-primary text-white hover:bg-primary-hover',
+  secondary: 'bg-surface text-text-secondary border border-border hover:bg-border hover:text-text',
+  ghost: 'text-text-secondary hover:text-text hover:bg-border/40',
   danger: 'bg-danger/10 text-danger hover:bg-danger/20',
   success: 'bg-success/10 text-success hover:bg-success/20',
   warning: 'bg-warning/10 text-warning hover:bg-warning/20',
@@ -31,7 +31,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         'inline-flex items-center justify-center rounded font-medium whitespace-nowrap',
         'transition-colors duration-150 focus:outline-none',
         'disabled:opacity-40 disabled:cursor-not-allowed',
-        active && 'bg-accent/10 text-accent',
+        active && 'bg-primary/10 text-primary',
         variantStyles[variant],
         sizeStyles[size],
         className

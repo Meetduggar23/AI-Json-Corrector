@@ -50,9 +50,9 @@ export default function SchemaPage() {
   return (
     <div className="h-full flex flex-col">
       <EditorToolbar />
-      <div className="h-9 flex items-center gap-2 px-3 border-b border-border bg-toolbar/50 shrink-0">
-        <FileSearch size={14} className="text-accent" />
-        <span className="text-xs font-medium text-text-primary">Schema Validation</span>
+      <div className="h-9 flex items-center gap-2 px-3 border-b border-border bg-topbar-bg/50 shrink-0">
+        <FileSearch size={14} className="text-primary" />
+        <span className="text-xs font-medium text-text">Schema Validation</span>
         <span className="text-xs text-text-muted">— Validate JSON against a schema</span>
       </div>
       <div className="flex-1 flex">
@@ -61,7 +61,7 @@ export default function SchemaPage() {
             <MonacoEditor />
           </div>
         </div>
-        <div className="w-[300px] border-l border-border bg-bg-primary flex flex-col overflow-hidden">
+        <div className="w-[300px] border-l border-border bg-bg flex flex-col overflow-hidden">
           <div className="h-8 flex items-center px-3 border-b border-border shrink-0">
             <span className="text-[11px] font-semibold text-text-secondary uppercase tracking-wider">Schema</span>
           </div>
@@ -78,7 +78,7 @@ export default function SchemaPage() {
               value={schemaInput}
               onChange={(e) => setSchemaInput(e.target.value)}
               placeholder="Paste JSON schema here..."
-              className="w-full h-[160px] bg-editor-bg border border-border rounded p-2.5 text-xs font-mono text-text-primary outline-none focus:border-accent resize-none placeholder:text-text-muted"
+              className="w-full h-[160px] bg-editor-bg border border-border rounded p-2.5 text-xs font-mono text-text outline-none focus:border-primary resize-none placeholder:text-text-muted"
             />
             {!isValidSchema && schemaInput.trim() && (
               <p className="text-xs text-danger mt-1.5">Invalid JSON schema format</p>
@@ -95,7 +95,7 @@ export default function SchemaPage() {
                       <AlertTriangle size={12} className="text-warning mt-0.5 shrink-0" />
                       <div className="text-xs">
                         <p className="text-text-muted">{err.path}</p>
-                        <p className="text-text-primary mt-0.5">{err.message}</p>
+                        <p className="text-text mt-0.5">{err.message}</p>
                       </div>
                     </div>
                   </div>

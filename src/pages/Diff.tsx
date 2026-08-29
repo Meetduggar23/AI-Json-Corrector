@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { DiffViewer } from '@/components/diff/DiffViewer'
+import { EditorToolbar } from '@/components/editor/Toolbar'
 import { Button } from '@/components/common/Button'
 import { GitCompare, ArrowLeftRight } from 'lucide-react'
 import { useEditorStore } from '@/store/editorStore'
@@ -24,10 +25,12 @@ export default function DiffPage() {
 
   return (
     <div className="h-full flex flex-col">
-      <div className="h-9 flex items-center justify-between px-3 border-b border-border bg-toolbar/50">
+      <EditorToolbar />
+      <div className="h-9 flex items-center justify-between px-3 border-b border-border bg-toolbar/50 shrink-0">
         <div className="flex items-center gap-2">
-          <GitCompare size={15} className="text-accent" />
+          <GitCompare size={14} className="text-accent" />
           <span className="text-xs font-medium text-text-primary">Diff Viewer</span>
+          <span className="text-xs text-text-muted">— Compare original and corrected JSON</span>
         </div>
         <Button variant="ghost" size="xs" icon={<ArrowLeftRight size={13} />} onClick={handleSwap}>
           Swap

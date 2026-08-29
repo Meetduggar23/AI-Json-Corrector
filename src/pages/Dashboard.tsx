@@ -2,7 +2,7 @@ import { useState, useRef, useCallback, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   FileCheck, Wrench, Sparkles, Shrink, FileSearch, GitCompare,
-  ArrowRight, FolderOpen, MoreHorizontal, Folder,
+  ArrowRight, FolderOpen, Folder,
 } from 'lucide-react'
 import { useEditorStore } from '@/store/editorStore'
 import { cn, formatBytes, generateId } from '@/utils/helpers'
@@ -83,11 +83,12 @@ export function Dashboard() {
       trackFileOpen(file.name, valid ? 'valid' : 'invalid', text.length)
       trackActivity({ type: 'open', label: `Opened ${file.name}`, path: '/' })
       addConsoleEntry({ id: generateId(), type: 'info', message: `Opened ${file.name}`, timestamp: Date.now() })
+      navigate('/')
     } catch {
       addConsoleEntry({ id: generateId(), type: 'error', message: 'Failed to read file', timestamp: Date.now() })
     }
     e.target.value = ''
-  }, [setContent, setFileName, setStatistics, setValidationErrors, addConsoleEntry])
+  }, [setContent, setFileName, setStatistics, setValidationErrors, addConsoleEntry, navigate])
 
   const handleAction = useCallback((action: typeof ACTIONS[number]) => {
     const t = action.label.toLowerCase()
@@ -103,9 +104,11 @@ export function Dashboard() {
   }, [navigate, addConsoleEntry])
 
   const handleOpenRecent = useCallback((file: RecentFile) => {
+    // Navigate to workspace — user needs to open the file manually since
+    // recent files no longer store content (localStorage size safety)
     setFileName(file.name)
-    addConsoleEntry({ id: generateId(), type: 'info', message: `Navigate to Workspace to view ${file.name}`, timestamp: Date.now() })
     navigate('/')
+    addConsoleEntry({ id: generateId(), type: 'info', message: `Opened ${file.name} from recents — use Open File to load`, timestamp: Date.now() })
   }, [setFileName, addConsoleEntry, navigate])
 
   return (
@@ -237,16 +240,9 @@ function RecentFilesTable({ files, onOpenRecent, onOpen: _onOpen }: {
                   <button
                     onClick={(e) => { e.stopPropagation(); onOpenRecent(file) }}
                     className="w-8 h-8 flex items-center justify-center rounded-lg text-text-muted hover:text-text-primary hover:bg-hover transition-colors"
-                    title="Open"
+                    title="Open in Workspace"
                   >
                     <Folder size={14} />
-                  </button>
-                  <button
-                    onClick={(e) => e.stopPropagation()}
-                    className="w-8 h-8 flex items-center justify-center rounded-lg text-text-muted hover:text-text-primary hover:bg-hover transition-colors"
-                    title="More"
-                  >
-                    <MoreHorizontal size={14} />
                   </button>
                 </div>
               </td>
@@ -254,16 +250,6 @@ function RecentFilesTable({ files, onOpenRecent, onOpen: _onOpen }: {
           ))}
         </tbody>
       </table>
-      <div className="border-t border-border flex items-center justify-center" style={{ padding: '12px' }}>
-        <button
-          onClick={() => _onOpen()}
-          className="inline-flex items-center gap-1.5 text-accent hover:text-accent-hover transition-colors"
-          style={{ fontSize: '13px', fontWeight: 500 }}
-        >
-          Open a File
-          <ArrowRight size={14} />
-        </button>
-      </div>
     </div>
   )
 }

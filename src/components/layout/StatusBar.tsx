@@ -1,3 +1,4 @@
+import { useMemo } from 'react'
 import { useEditorStore } from '@/store/editorStore'
 import { useSettingsStore } from '@/store/editorStore'
 import { formatBytes } from '@/utils/helpers'
@@ -5,9 +6,14 @@ import { formatBytes } from '@/utils/helpers'
 export function StatusBar() {
   const { content, validationErrors, fileName, statistics, isRunning } = useEditorStore()
   const { tabSize } = useSettingsStore()
-  const lines = content ? content.split('\n').length : 0
-  const chars = content.length
-  const size = new Blob([content]).size
+
+  const stats = useMemo(() => {
+    const lines = content ? content.split('\n').length : 0
+    const chars = content.length
+    const size = new Blob([content]).size
+    return { lines, chars, size }
+  }, [content])
+
   const hasErrors = validationErrors.length > 0
   const hasContent = content.trim().length > 0
 
@@ -34,11 +40,11 @@ export function StatusBar() {
             <span className="text-border">|</span>
           </>
         )}
-        <span>Ln {lines}</span>
+        <span>Ln {stats.lines}</span>
         <span className="text-border">|</span>
-        <span>{chars.toLocaleString()} chars</span>
+        <span>{stats.chars.toLocaleString()} chars</span>
         <span className="text-border">|</span>
-        <span>{formatBytes(size)}</span>
+        <span>{formatBytes(stats.size)}</span>
         <span className="text-border">|</span>
         <span>Spaces: {tabSize}</span>
       </div>

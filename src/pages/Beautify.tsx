@@ -33,8 +33,12 @@ export default function BeautifyPage() {
   return (
     <div className="h-full flex flex-col">
       <EditorToolbar />
-      <div className="h-9 flex items-center justify-between px-3 border-b border-border bg-toolbar/50">
-        <span className="text-xs text-text-secondary">Beautify with indentation</span>
+      <div className="h-9 flex items-center justify-between px-3 border-b border-border bg-toolbar/50 shrink-0">
+        <div className="flex items-center gap-2">
+          <Sparkles size={14} className="text-accent" />
+          <span className="text-xs font-medium text-text-primary">Beautify</span>
+          <span className="text-xs text-text-muted">— Pretty print with custom indentation</span>
+        </div>
         <Button size="xs" icon={<Sparkles size={13} />} onClick={handleBeautify}>Beautify</Button>
       </div>
       <div className="flex-1">

@@ -20,32 +20,4 @@ export function generateId(): string {
   return Math.random().toString(36).substring(2, 11)
 }
 
-export function debounce<T extends (...args: unknown[]) => void>(
-  fn: T,
-  delay: number
-): { (...args: Parameters<T>): void; cancel: () => void } {
-  let timer: ReturnType<typeof setTimeout> | null = null
-  const debounced = (...args: Parameters<T>) => {
-    if (timer !== null) clearTimeout(timer)
-    timer = setTimeout(() => {
-      timer = null
-      fn(...args)
-    }, delay)
-  }
-  debounced.cancel = () => {
-    if (timer !== null) {
-      clearTimeout(timer)
-      timer = null
-    }
-  }
-  return debounced
-}
 
-export function getLineNumber(str: string, index: number): number {
-  return str.substring(0, index).split('\n').length
-}
-
-export function getColumnNumber(str: string, index: number): number {
-  const lastNewline = str.lastIndexOf('\n', index - 1)
-  return index - lastNewline
-}

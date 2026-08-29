@@ -77,11 +77,6 @@ const settingGroups: {
     key: 'autoRepair',
     type: 'toggle',
   },
-  {
-    title: 'Animations',
-    key: 'animations',
-    type: 'toggle',
-  },
 ]
 
 const appThemeOptions = [
@@ -94,12 +89,17 @@ export default function SettingsPage() {
   const { updateSetting, resetSettings } = settings
   const { theme: appTheme, resolvedTheme, setTheme } = useTheme()
 
+  const handleReset = () => {
+    resetSettings()
+    setTheme('dark')
+  }
+
   return (
     <div className="h-full overflow-y-auto">
       <div className="p-6 max-w-2xl">
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-base font-semibold text-text-primary">Settings</h1>
-          <Button variant="ghost" size="xs" onClick={resetSettings}>
+          <Button variant="ghost" size="xs" onClick={handleReset}>
             Reset Defaults
           </Button>
         </div>

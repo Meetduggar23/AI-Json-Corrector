@@ -3,10 +3,11 @@ import { useNavigate } from 'react-router-dom'
 import {
   FolderOpen, FilePlus, Search, Save, Settings, Sun, Moon, Pencil, Play, Loader2,
 } from 'lucide-react'
-import { useEditorStore } from '@/store/editorStore'
+import { useEditorStore, useSettingsStore } from '@/store/editorStore'
 import { useTheme } from '@/hooks/useTheme'
 import { downloadJson } from '@/utils/download'
 import { readFileAsText } from '@/utils/upload'
+import { beautifyJson } from '@/services/formatter'
 import { generateId } from '@/utils/helpers'
 import { computeStatistics } from '@/utils/statistics'
 import { validateJson } from '@/services/validator'
@@ -129,18 +130,25 @@ export function TopToolbar() {
     fileInputRef.current?.click()
   }
 
+  const { autoFormat, tabSize, indentStyle } = useSettingsStore()
+
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
     try {
-      const text = await readFileAsText(file)
+      const rawText = await readFileAsText(file)
+      let text = rawText
+      if (autoFormat) {
+        const indent = indentStyle === 'tab' ? 'tab' as const : tabSize as 2 | 4 | 8
+        text = beautifyJson(rawText, indent)
+      }
       setContent(text)
       setFileName(file.name)
       setStatistics(computeStatistics(text))
       const result = validateJson(text)
       setValidationErrors(result.errors)
       pushHistory({ id: generateId(), content: text, timestamp: Date.now(), label: `Opened ${file.name}` })
-      addConsoleEntry({ id: generateId(), type: 'info', message: `Opened ${file.name}`, timestamp: Date.now() })
+      addConsoleEntry({ id: generateId(), type: 'info', message: `Opened ${file.name}${autoFormat ? ' (auto-formatted)' : ''}`, timestamp: Date.now() })
       toast.success(`Loaded ${file.name}`)
     } catch {
       toast.error('Failed to read file')
@@ -148,14 +156,20 @@ export function TopToolbar() {
     e.target.value = ''
   }
 
-  const handleSave = () => {
+  const handleSave = useCallback(() => {
     if (!content.trim()) {
       toast.error('Nothing to save')
       return
     }
     downloadJson(content, fileName || 'untitled.json')
     toast.success('Downloaded')
-  }
+  }, [content, fileName])
+
+  useEffect(() => {
+    const handler = () => handleSave()
+    window.addEventListener('editor:save', handler)
+    return () => window.removeEventListener('editor:save', handler)
+  }, [handleSave])
 
   const handleNew = () => {
     setContent('{\n  \n}')

@@ -1,7 +1,6 @@
 export type EditorTheme = 'vs-dark' | 'vs' | 'hc-black'
 export type TabSize = 2 | 4 | 8
 export type IndentStyle = 'spaces' | 'tab'
-export type PanelView = 'editor' | 'diff' | 'tree'
 
 export interface EditorSettings {
   theme: EditorTheme

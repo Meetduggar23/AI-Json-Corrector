@@ -3,6 +3,7 @@ import { Outlet } from 'react-router-dom'
 import { TopToolbar } from './TopToolbar'
 import { Sidebar } from './Sidebar'
 import { RightPanel } from './RightPanel'
+import { BottomConsole } from './BottomConsole'
 import { StatusBar } from './StatusBar'
 import { useEditorStore } from '@/store/editorStore'
 import { useRun } from '@/hooks/useRun'
@@ -11,7 +12,9 @@ export function Layout() {
   const { isSidebarOpen, isRightPanelOpen, toggleSidebar, toggleRightPanel } = useEditorStore()
   const { run } = useRun()
   const [rightWidth, setRightWidth] = useState(320)
+  const [consoleHeight, setConsoleHeight] = useState(180)
   const isDraggingRight = useRef(false)
+  const isDraggingConsole = useRef(false)
   const runRef = useRef(run)
   runRef.current = run
   const isSidebarOpenRef = useRef(isSidebarOpen)
@@ -23,16 +26,28 @@ export function Layout() {
     document.body.style.cursor = 'col-resize'
   }, [])
 
+  const handleConsoleMouseDown = useCallback((e: React.MouseEvent) => {
+    e.preventDefault()
+    isDraggingConsole.current = true
+    document.body.style.cursor = 'row-resize'
+  }, [])
+
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
       if (isDraggingRight.current) {
         const sidebarWidth = isSidebarOpenRef.current ? 240 : 0
         setRightWidth(Math.max(280, Math.min(420, window.innerWidth - e.clientX - sidebarWidth)))
       }
+      if (isDraggingConsole.current) {
+        setConsoleHeight(Math.max(100, Math.min(400, window.innerHeight - e.clientY - 80)))
+      }
     }
     const handleMouseUp = () => {
-      isDraggingRight.current = false
-      document.body.style.cursor = ''
+      if (isDraggingRight.current || isDraggingConsole.current) {
+        isDraggingRight.current = false
+        isDraggingConsole.current = false
+        document.body.style.cursor = ''
+      }
     }
     document.addEventListener('mousemove', handleMouseMove)
     document.addEventListener('mouseup', handleMouseUp)
@@ -45,6 +60,7 @@ export function Layout() {
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
     if ((e.ctrlKey || e.metaKey) && e.key === 's') {
       e.preventDefault()
+      window.dispatchEvent(new CustomEvent('editor:save'))
     }
     if (e.key === 'F2') {
       e.preventDefault()
@@ -81,7 +97,16 @@ export function Layout() {
         {isSidebarOpen && <Sidebar />}
         <div className="flex-1 flex overflow-hidden min-w-0">
           <div className="flex-1 flex flex-col overflow-hidden min-w-0">
-            <Outlet />
+            <div className="flex-1 overflow-hidden min-w-0">
+              <Outlet />
+            </div>
+            <div
+              className="h-px cursor-row-resize shrink-0 bg-border hover:bg-accent/30 transition-colors"
+              onMouseDown={handleConsoleMouseDown}
+            />
+            <div style={{ height: consoleHeight }} className="shrink-0 overflow-hidden">
+              <BottomConsole />
+            </div>
           </div>
           {isRightPanelOpen && (
             <>

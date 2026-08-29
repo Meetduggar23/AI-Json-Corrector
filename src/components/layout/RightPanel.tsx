@@ -100,7 +100,7 @@ export function RightPanel() {
       <Section title={getContextTitle(path)} open={contextOpen} onToggle={setContextOpen}>
         {renderContext(path, {
           hasContent, errorCount, firstError, statistics,
-          diffStats, recentRepairs, content, originalContent,
+          diffStats, recentRepairs, historyEntries, content, originalContent,
           originalSize, formattedSize, compressedSize, savedBytes,
           rootType, path, theme, fontSize, tabSize, navigate,
         })}
@@ -163,6 +163,7 @@ interface ContextProps {
   statistics: JsonStatistics | null
   diffStats: { added: number; removed: number; modified: number }
   recentRepairs: number
+  historyEntries: { id: string; content: string; timestamp: number; label: string }[]
   content: string
   originalContent: string
   originalSize: number
@@ -239,7 +240,7 @@ function renderContext(path: string, p: ContextProps) {
       return (
         <>
           <Row icon={FileSearch} label="Schema Loaded" value={p.hasContent ? 'Yes' : 'No'} />
-          <Row icon={FileCheck} label="Validation" value={p.hasContent && p.errorCount === 0 ? 'Passed' : p.hasContent ? 'Failed' : '-'} />
+          <Row icon={FileCheck} label="JSON Validity" value={p.hasContent && p.errorCount === 0 ? 'Valid' : p.hasContent ? `${p.errorCount} error(s)` : '-'} />
         </>
       )
 
@@ -255,8 +256,8 @@ function renderContext(path: string, p: ContextProps) {
     case '/history':
       return (
         <>
-          <Row icon={History} label="Undo Stack" value={String(p.diffStats.modified)} />
-          <Row icon={History} label="Current Version" value="v1" />
+          <Row icon={History} label="Total Entries" value={String(p.historyEntries.length)} />
+          <Row icon={History} label="Can Undo" value={p.historyEntries.length > 1 ? 'Yes' : 'No'} />
         </>
       )
 

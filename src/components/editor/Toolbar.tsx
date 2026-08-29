@@ -11,12 +11,15 @@ import { computeStatistics } from '@/utils/statistics'
 import { generateId } from '@/utils/helpers'
 import { downloadJson } from '@/utils/download'
 import { triggerSearch } from '@/utils/editorApi'
+import { RunButton } from '@/components/common/RunButton'
 import toast from 'react-hot-toast'
 
 export function EditorToolbar() {
   const { content, setContent, fileName, pushHistory, undo, redo, historyIndex, history, setValidationErrors, setStatistics } = useEditorStore()
+  const isRunning = useEditorStore((s) => s.isRunning)
   const { tabSize, indentStyle } = useSettingsStore()
   const { repair } = useRepair()
+  const run = useCallback(() => { window.dispatchEvent(new CustomEvent('editor:run')) }, [])
 
   const handleFormat = () => {
     const indent = indentStyle === 'tab' ? 'tab' as const : tabSize as 2 | 4 | 8
@@ -64,6 +67,8 @@ export function EditorToolbar() {
 
   return (
     <div className="h-[30px] flex items-center gap-0.5 px-2 border-b border-border bg-editor-bg shrink-0">
+      <RunButton onClick={run} running={isRunning} />
+      <span className="w-px h-3.5 bg-border mx-1" />
       <EditorBtn icon={Undo2} onClick={undo} disabled={historyIndex <= 0} label="Undo" />
       <EditorBtn icon={Redo2} onClick={redo} disabled={historyIndex >= history.length - 1} label="Redo" />
       <span className="w-px h-3.5 bg-border mx-1" />

@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { FolderOpen, FilePlus, Search, Save, Settings, Sun, Moon, Pencil, Play, Loader2 } from 'lucide-react'
+import { FolderOpen, FilePlus, Search, Save, Settings, Sun, Moon, Pencil, Loader2 } from 'lucide-react'
 import { useEditorStore, useSettingsStore } from '@/store/editorStore'
 import { useTheme } from '@/hooks/useTheme'
 import { downloadJson } from '@/utils/download'
@@ -10,6 +10,7 @@ import { generateId } from '@/utils/helpers'
 import { computeStatistics } from '@/utils/statistics'
 import { validateJson } from '@/services/validator'
 import { triggerSearch } from '@/utils/editorApi'
+import { RunButton } from '@/components/common/RunButton'
 import toast from 'react-hot-toast'
 
 function sanitizeFilename(name: string): string {
@@ -143,15 +144,7 @@ export function TopBar() {
         <TopBtn icon={FolderOpen} onClick={handleOpen} label="Open File" showLabel />
         <TopBtn icon={FilePlus} onClick={handleNew} label="New File" showLabel />
         <div className="w-px h-5 bg-border mx-1.5" />
-        <button
-          onClick={run}
-          disabled={isRunning}
-          className="h-8 px-4 bg-primary text-white text-[12px] font-semibold hover:bg-primary-hover transition-colors disabled:opacity-40 inline-flex items-center gap-1.5 shadow-sm shadow-primary/25"
-          title="Run (Ctrl+Enter)"
-        >
-          {isRunning ? <Loader2 size={14} className="animate-spin" /> : <Play size={13} fill="currentColor" />}
-          Run
-        </button>
+        <RunButton onClick={run} running={isRunning} />
         <TopBtn icon={Search} onClick={triggerSearch} label="Search" />
         <TopBtn icon={Save} onClick={handleSave} label="Save" />
         <TopBtn icon={Settings} onClick={() => navigate('/settings')} label="Settings" />

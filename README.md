@@ -74,26 +74,8 @@ npm run preview
 - **jsonrepair** — JSON auto-repair engine
 - **AJV** — JSON Schema validation
 
-## Project Structure
+---
 
-```
-src/
-├── components/
-│   ├── common/        # Shared UI components (Button)
-│   ├── diff/          # Diff viewer
-│   ├── editor/        # Monaco editor, toolbar
-│   ├── history/       # History panel
-│   ├── layout/        # Layout, sidebar, top toolbar, panels
-│   └── repair/        # Quick fix panel
-├── hooks/             # Custom React hooks
-├── pages/             # Route pages (Dashboard, Validator, etc.)
-├── services/          # Business logic (formatter, validator, repair)
-├── store/             # Zustand stores
-├── styles/            # Global CSS
-├── types/             # TypeScript type definitions
-└── utils/             # Utility functions
-```
-
-## License
-
-MIT
+<p align="center">
+  Made By <strong>Meet Duggar</strong>
+</p>
